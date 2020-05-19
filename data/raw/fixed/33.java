@@ -1,0 +1,1 @@
+void drawHover(X cell);

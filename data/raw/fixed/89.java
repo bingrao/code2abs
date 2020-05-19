@@ -1,0 +1,1 @@
+java.util.Set<java.lang.String> getKeys(java.lang.String pattern);

@@ -1,0 +1,10 @@
+[0]-24.java	 public void Method_0 ( ) { Varl_0 . Method_1 ( Varl_1 . Ident_0 , "String_0" ) ; Method_3 ( ) ; super . Method_0 ( ) ; } 
+[0]-13.java	 public void Method_0 ( ) { Varl_0 . setState ( 1 ) ; } 
+[3]-85.java	 public void Method_0 ( ) { Varl_0 . Method_1 ( Varl_1 . Ident_0 ) ; } 
+[3]-93.java	 public Type_0 Method_0 ( float Varl_0 , int Varl_1 , int Varl_2 , float [ ] Varl_3 ) { Type_0 Varl_4 = new Type_1 ( new Type_2 ( Varl_0 , Varl_1 , Varl_2 ) , Varl_6 ) ; return Varl_4 ; } 
+[0]-10.java	 public boolean Method_0 ( java.lang.String Varl_0 ) { return ( Method_1 ( Varl_0 ) ) >= 0 ; } 
+[3]-96.java	 public void delete ( java.lang.Long id ) { Type_0 Varl_0 = Varl_1 . Method_0 ( Ident_0 . Type_0 , id ) ; Varl_1 . remove ( Varl_0 ) ; } 
+[3]-82.java	 private void Method_0 ( ) { int Varl_0 = Varl_1 . x ; int Varl_2 = Varl_1 . y ; if ( ! ( Method_1 ( Varl_0 , Varl_2 , Varl_3 . Ident_0 ) ) ) { Varl_2 ++ ; } Method_2 ( Varl_0 , Varl_2 , Varl_3 . Ident_0 ) ; } 
+[2]-77.java	 public void Method_0 ( java.lang.String id ) { android.content.Intent i = new android.content.Intent ( ) ; i . Method_1 ( getActivity ( ) , Ident_0 . Type_0 ) ; i . Method_2 ( "id" , id ) ; Method_3 ( i ) ; } 
+[2]-61.java	 private void Method_0 ( java.lang.String Varl_0 ) { } 
+[2]-53.java	 public static void main ( java.lang.String [ ] args ) throws java.lang.Exception { Varl_0 . Method_0 ( Varl_0 . Ident_0 , "String_0" , Integer_0 , Integer_1 ) ; } 

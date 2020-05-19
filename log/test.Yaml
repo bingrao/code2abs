@@ -1,10 +1,17 @@
 ---
 root(Type=CompilationUnit): 
+    packageDeclaration(Type=PackageDeclaration): 
+        name(Type=Name): 
+            identifier: "ml"
+            qualifier(Type=Name): 
+                identifier: "ucf"
+                qualifier(Type=Name): 
+                    identifier: "org"
     types: 
         - type(Type=ClassOrInterfaceDeclaration): 
             isInterface: "false"
             name(Type=SimpleName): 
-                identifier: "DummyClass"
+                identifier: "JavaApp"
             members: 
                 - member(Type=MethodDeclaration): 
                     body(Type=BlockStmt): 
@@ -13,133 +20,55 @@ root(Type=CompilationUnit):
                                 expression(Type=VariableDeclarationExpr): 
                                     variables: 
                                         - variable(Type=VariableDeclarator): 
-                                            initializer(Type=ObjectCreationExpr): 
-                                                type(Type=ClassOrInterfaceType): 
-                                                    name(Type=SimpleName): 
-                                                        identifier: "ArrayList"
-                                                    scope(Type=ClassOrInterfaceType): 
-                                                        name(Type=SimpleName): 
-                                                            identifier: "util"
-                                                        scope(Type=ClassOrInterfaceType): 
-                                                            name(Type=SimpleName): 
-                                                                identifier: "java"
-                                                    typeArguments: 
-                                                        - typeArgument(Type=ClassOrInterfaceType): 
-                                                            name(Type=SimpleName): 
-                                                                identifier: "Sample"
-                                                            scope(Type=ClassOrInterfaceType): 
-                                                                name(Type=SimpleName): 
-                                                                    identifier: "authoring"
-                                                                scope(Type=ClassOrInterfaceType): 
-                                                                    name(Type=SimpleName): 
-                                                                        identifier: "mp4parser"
-                                                                    scope(Type=ClassOrInterfaceType): 
-                                                                        name(Type=SimpleName): 
-                                                                            identifier: "googlecode"
-                                                                        scope(Type=ClassOrInterfaceType): 
-                                                                            name(Type=SimpleName): 
-                                                                                identifier: "com"
+                                            initializer(Type=IntegerLiteralExpr): 
+                                                value: "3"
                                             name(Type=SimpleName): 
-                                                identifier: "lists"
+                                                identifier: "a"
                                             type(Type=ClassOrInterfaceType): 
                                                 name(Type=SimpleName): 
-                                                    identifier: "ArrayList"
-                                                scope(Type=ClassOrInterfaceType): 
-                                                    name(Type=SimpleName): 
-                                                        identifier: "util"
-                                                    scope(Type=ClassOrInterfaceType): 
-                                                        name(Type=SimpleName): 
-                                                            identifier: "java"
-                                                typeArguments: 
-                                                    - typeArgument(Type=ClassOrInterfaceType): 
-                                                        name(Type=SimpleName): 
-                                                            identifier: "Sample"
-                                                        scope(Type=ClassOrInterfaceType): 
-                                                            name(Type=SimpleName): 
-                                                                identifier: "authoring"
-                                                            scope(Type=ClassOrInterfaceType): 
-                                                                name(Type=SimpleName): 
-                                                                    identifier: "mp4parser"
-                                                                scope(Type=ClassOrInterfaceType): 
-                                                                    name(Type=SimpleName): 
-                                                                        identifier: "googlecode"
-                                                                    scope(Type=ClassOrInterfaceType): 
-                                                                        name(Type=SimpleName): 
-                                                                            identifier: "com"
-                            - statement(Type=ForEachStmt): 
-                                body(Type=BlockStmt): 
-                                    statements: 
-                                        - statement(Type=ExpressionStmt): 
-                                            expression(Type=MethodCallExpr): 
-                                                name(Type=SimpleName): 
-                                                    identifier: "addAll"
-                                                scope(Type=NameExpr): 
-                                                    name(Type=SimpleName): 
-                                                        identifier: "lists"
-                                                arguments: 
-                                                    - argument(Type=MethodCallExpr): 
-                                                        name(Type=SimpleName): 
-                                                            identifier: "getSamples"
-                                                        scope(Type=NameExpr): 
-                                                            name(Type=SimpleName): 
-                                                                identifier: "track"
-                                iterable(Type=NameExpr): 
-                                    name(Type=SimpleName): 
-                                        identifier: "tracks"
-                                variable(Type=VariableDeclarationExpr): 
+                                                    identifier: "Int"
+                            - statement(Type=ExpressionStmt): 
+                                expression(Type=VariableDeclarationExpr): 
                                     variables: 
                                         - variable(Type=VariableDeclarator): 
+                                            initializer(Type=IntegerLiteralExpr): 
+                                                value: "4"
                                             name(Type=SimpleName): 
-                                                identifier: "track"
+                                                identifier: "b"
                                             type(Type=ClassOrInterfaceType): 
                                                 name(Type=SimpleName): 
-                                                    identifier: "Track"
-                                                scope(Type=ClassOrInterfaceType): 
+                                                    identifier: "Int"
+                            - statement(Type=ExpressionStmt): 
+                                expression(Type=VariableDeclarationExpr): 
+                                    variables: 
+                                        - variable(Type=VariableDeclarator): 
+                                            initializer(Type=BinaryExpr): 
+                                                operator: "PLUS"
+                                                left(Type=NameExpr): 
                                                     name(Type=SimpleName): 
-                                                        identifier: "authoring"
-                                                    scope(Type=ClassOrInterfaceType): 
-                                                        name(Type=SimpleName): 
-                                                            identifier: "mp4parser"
-                                                        scope(Type=ClassOrInterfaceType): 
-                                                            name(Type=SimpleName): 
-                                                                identifier: "googlecode"
-                                                            scope(Type=ClassOrInterfaceType): 
-                                                                name(Type=SimpleName): 
-                                                                    identifier: "com"
-                            - statement(Type=ReturnStmt): 
-                                expression(Type=NameExpr): 
-                                    name(Type=SimpleName): 
-                                        identifier: "lists"
-                    type(Type=ClassOrInterfaceType): 
-                        name(Type=SimpleName): 
-                            identifier: "List"
-                        scope(Type=ClassOrInterfaceType): 
-                            name(Type=SimpleName): 
-                                identifier: "util"
-                            scope(Type=ClassOrInterfaceType): 
-                                name(Type=SimpleName): 
-                                    identifier: "java"
-                        typeArguments: 
-                            - typeArgument(Type=ClassOrInterfaceType): 
-                                name(Type=SimpleName): 
-                                    identifier: "Sample"
-                                scope(Type=ClassOrInterfaceType): 
-                                    name(Type=SimpleName): 
-                                        identifier: "authoring"
-                                    scope(Type=ClassOrInterfaceType): 
-                                        name(Type=SimpleName): 
-                                            identifier: "mp4parser"
-                                        scope(Type=ClassOrInterfaceType): 
+                                                        identifier: "a"
+                                                right(Type=NameExpr): 
+                                                    name(Type=SimpleName): 
+                                                        identifier: "b"
                                             name(Type=SimpleName): 
-                                                identifier: "googlecode"
-                                            scope(Type=ClassOrInterfaceType): 
+                                                identifier: "c"
+                                            type(Type=ClassOrInterfaceType): 
                                                 name(Type=SimpleName): 
-                                                    identifier: "com"
+                                                    identifier: "Int"
+                    type(Type=VoidType): 
                     name(Type=SimpleName): 
-                        identifier: "getSamples"
+                        identifier: "hello"
                     modifiers: 
                         - modifier(Type=Modifier): 
                             keyword: "PUBLIC"
+                    parameters: 
+                        - parameter(Type=Parameter): 
+                            isVarArgs: "false"
+                            name(Type=SimpleName): 
+                                identifier: "input"
+                            type(Type=ClassOrInterfaceType): 
+                                name(Type=SimpleName): 
+                                    identifier: "String"
             modifiers: 
                 - modifier(Type=Modifier): 
                     keyword: "PUBLIC"

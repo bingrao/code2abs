@@ -16,8 +16,71 @@ import scala.collection.mutable.ListBuffer
 
 trait EnrichedTrees extends utils.Common {
 
+
+  def getPath(src:Node, tgt:Node) = {
+
+    def getPathRecursive(src:Node, tgt:Node,
+                         up:ListBuffer[Node], down:ListBuffer[Node]):Unit = {
+
+
+      val srcParent = src.getParentNode
+      val tgtParent = tgt.getParentNode
+
+      if (srcParent.isPresent) {
+        up += srcParent.get()
+        // tgt node first get the joint node.
+        if (down.contains(srcParent.get())) return
+      }
+
+      if (tgtParent.isPresent) {
+        down += tgtParent.get()
+        // src node first get the joint node
+        if (up.contains(tgtParent.get())) return
+      }
+
+      if ((!srcParent.isPresent) && (!tgtParent.isPresent)) return
+
+      getPathRecursive(srcParent.get(), tgtParent.get(), up, down)
+    }
+
+    val srcUpList = new ListBuffer[Node]
+    val tgtDownList = new ListBuffer[Node]
+    srcUpList += src
+    tgtDownList += tgt
+
+    getPathRecursive(src, tgt, srcUpList, tgtDownList)
+
+    val path = new StringBuilder
+
+    val jointNode = if (srcUpList.contains(tgtDownList.last)) tgtDownList.last else srcUpList.last
+
+    val srcJointIndex = srcUpList.indexOf(jointNode)
+    val tgtJointIndex = tgtDownList.indexOf(jointNode)
+    val srcPath = srcUpList.slice(0, srcJointIndex + 1).toList
+    val tgtPath = tgtDownList.slice(0, tgtJointIndex).toList.reverse
+
+    srcPath.foreach(n => {
+      if (n == srcPath.last)
+        path.append(s"[${n.getClass.getSimpleName}] -> ")
+      else
+        path.append(s"${n.getClass.getSimpleName} -> ")
+    })
+
+    tgtPath.foreach(n => {
+      if (n == tgtPath.last)
+        path.append(s"${n.getClass.getSimpleName}")
+      else
+        path.append(s"${n.getClass.getSimpleName} -> ")
+    })
+
+    path.toString()
+
+  }
+
   implicit class genCompilationUnit(node:CompilationUnit) {
     def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+
+
       // 1. package declaration
       val package_decl = node.getPackageDeclaration
       if (package_decl.isPresent) package_decl.get().genCode(ctx, numsIntent)
@@ -31,6 +94,7 @@ trait EnrichedTrees extends utils.Common {
       // 3. A list of defined types, such as Class, Interface, Enum, Annotation ...
       node.getTypes.foreach(typeDecl => typeDecl.genCode(ctx, numsIntent))
 
+      logger.error(getPath(ctx.src, ctx.tgt))
     }
   }
 
@@ -263,6 +327,7 @@ trait EnrichedTrees extends utils.Common {
         ctx.append(ctx.method_maps.getNewContent(node.getNameAsString))
       else
         node.getName.genCode(ctx)
+
 
       /*formal paramters*/
       ctx.append("(")
@@ -807,6 +872,7 @@ trait EnrichedTrees extends utils.Common {
       if (ctx.isAbstract) {
         ctx.append(ctx.variable_maps.getNewContent(node.getName.asString()))
       } else node.getName.genCode(ctx)
+
     }
   }
 
@@ -1108,7 +1174,8 @@ trait EnrichedTrees extends utils.Common {
   implicit class genSimpleName(node:SimpleName) {
     def genCode(ctx:Context, numsIntent:Int=0):Unit = {
       ctx.append(node.getIdentifier)
-
+      val ident = node.getIdentifier
+      if (ident == "String")  ctx.tgt = node.asInstanceOf[Node]
     }
   }
 
@@ -1208,15 +1275,6 @@ trait EnrichedTrees extends utils.Common {
         name.genCode(ctx, numsIntent)
       }
 
-//      if (scope.isPresent){
-//        if (ctx.isAbstract)
-//          ctx.append(ctx.type_maps.getNewContent(scope.get().toString))
-//        else
-//          scope.get().genCode(ctx, numsIntent)
-//        ctx.append(".")
-//      }
-//      if (ctx.isAbstract) ctx.append(ctx.type_maps.getNewContent(name.asString())) else name.genCode(ctx, numsIntent)
-
       if (tps.isPresent){
         ctx.append("<")
         tps.get().foreach(_.genCode(ctx, numsIntent))
@@ -1256,6 +1314,9 @@ trait EnrichedTrees extends utils.Common {
         ctx.append(".")
       }
       if (ctx.isAbstract) ctx.append(ctx.variable_maps.getNewContent(node.getIdentifier)) else ctx.append(node.getIdentifier)
+
+      if (node.getIdentifier == "org")  ctx.src = node.asInstanceOf[Node]
+
     }
   }
 

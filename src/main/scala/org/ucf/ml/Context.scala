@@ -3,9 +3,11 @@ package org.ucf.ml
 import java.util.concurrent.atomic.AtomicInteger
 import org.ucf.ml.utils.{Common, Count}
 import scala.collection.mutable
-
+import com.github.javaparser.ast.Node
 class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) extends Common {
 
+  var src:Node = null
+  var tgt:Node = null
   /*AST Tree Node Position*/
   private val position_offset = new AtomicInteger()
   def getNewPosition = position_offset.getAndIncrement()
@@ -52,7 +54,7 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
 
 
   /* Generating abstrace code */
-  var isAbstract = true
+  var isAbstract = false
   def setIsAbstract(value:Boolean) = this.isAbstract = value
 
   def getGranularity = granularity

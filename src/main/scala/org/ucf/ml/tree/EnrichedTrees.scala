@@ -59,18 +59,19 @@ trait EnrichedTrees extends utils.Common {
     val srcPath = srcUpList.slice(0, srcJointIndex + 1).toList
     val tgtPath = tgtDownList.slice(0, tgtJointIndex).toList.reverse
 
+    // https://en.wikipedia.org/wiki/List_of_Unicode_characters#Arrows
     srcPath.foreach(n => {
       if (n == srcPath.last)
-        path.append(s"[${n.getClass.getSimpleName}] -> ")
+        path.append(s"[${n.getClass.getSimpleName}] ").append('\u2193').append(" ") //\u2191
       else
-        path.append(s"${n.getClass.getSimpleName} -> ")
+        path.append(s"${n.getClass.getSimpleName} ").append('\u2191').append(" ")
     })
 
     tgtPath.foreach(n => {
       if (n == tgtPath.last)
         path.append(s"${n.getClass.getSimpleName}")
       else
-        path.append(s"${n.getClass.getSimpleName} -> ")
+        path.append(s"${n.getClass.getSimpleName} ").append('\u2193').append(" ")
     })
 
     path.toString()
@@ -78,7 +79,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genCompilationUnit(node:CompilationUnit) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
 
 
       // 1. package declaration
@@ -94,18 +95,19 @@ trait EnrichedTrees extends utils.Common {
       // 3. A list of defined types, such as Class, Interface, Enum, Annotation ...
       node.getTypes.foreach(typeDecl => typeDecl.genCode(ctx, numsIntent))
 
-      logger.error(getPath(ctx.src, ctx.tgt))
+//      logger.error(getPath(ctx.src, ctx.tgt))
     }
   }
 
   implicit class genPackageDeclaration(node: PackageDeclaration) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       ctx.append(if (ctx.isAbstract) ctx.ident_maps.getNewContent("package") else "package")
 
       node.getName.genCode(ctx)
       ctx.append(";")
       ctx.appendNewLine()
     }
+
   }
 
   /**
@@ -114,7 +116,7 @@ trait EnrichedTrees extends utils.Common {
    * @param node
    */
   implicit class genImportDeclaration(node:ImportDeclaration) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
 
       ctx.append(if (ctx.isAbstract) ctx.ident_maps.getNewContent("import") else "import")
 
@@ -132,7 +134,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genTypeDeclaration(node:TypeDeclaration[_]) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       node match {
         /**
          *  TypeDeclaration
@@ -149,7 +151,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genEnumDeclaration(node:EnumDeclaration) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
 
       val modifier = node.getModifiers
       modifier.foreach(_.genCode(ctx, numsIntent))
@@ -168,14 +170,14 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genAnnotationDeclaration(node:AnnotationDeclaration) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       //TODO, No implementation about annotation
       ctx.append(node.toString, numsIntent)
     }
   }
 
   implicit class genClassOrInterfaceDeclaration(node:ClassOrInterfaceDeclaration) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
 
       if (ctx.getGranularity == CLASS) {
         // 1. Class Modifiers, such as public/private
@@ -202,7 +204,7 @@ trait EnrichedTrees extends utils.Common {
       }
       // 3. Class Members: Filed and method, constructor
       val members = node.getMembers
-      members.foreach(bodyDecl => bodyDecl.genCode(ctx, numsIntent))
+      members.foreach(_.genCode(ctx, numsIntent))
 
       if (ctx.getGranularity == CLASS) ctx.append("}")
       ctx.appendNewLine()
@@ -210,7 +212,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genBodyDeclaration(node:BodyDeclaration[_]){
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       //TODO, only implment [[CallableDeclaration]] to handle with Method Declare
       node match {
         case n: InitializerDeclaration => {n.genCode(ctx, numsIntent)}
@@ -224,14 +226,14 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genInitializerDeclaration(node:InitializerDeclaration) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       //TODO, no implmentation for learning bugs
       ctx.append(node.toString(), numsIntent)
     }
   }
 
   implicit class genFieldDeclaration(node:FieldDeclaration) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
 
       node.getModifiers.foreach(_.genCode(ctx, numsIntent))
 
@@ -253,21 +255,21 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genEnumConstantDeclaration(node:EnumConstantDeclaration) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       //TODO, no implmentation for learning bugs
       ctx.append(node.toString, numsIntent)
     }
   }
 
   implicit class genAnnotationMemberDeclaration(node:AnnotationMemberDeclaration) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       //TODO, no implmentation for learning bugs
       ctx.append(node.toString, numsIntent)
     }
   }
 
   implicit class genCallableDeclaration(node:CallableDeclaration[_]){
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       node match {
         case n: ConstructorDeclaration => n.genCode(ctx, numsIntent)
         case n: MethodDeclaration => n.genCode(ctx, numsIntent)
@@ -276,7 +278,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genConstructorDeclaration(node:ConstructorDeclaration) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
 //      node.getAccessSpecifier
       node.getModifiers.foreach(_.genCode(ctx, numsIntent))
 
@@ -313,7 +315,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genMethodDeclaration(node:MethodDeclaration) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
 
       /*modifiers, such as public*/
       val modifiers = node.getModifiers
@@ -359,7 +361,7 @@ trait EnrichedTrees extends utils.Common {
   /************************** Statement ***************************/
 
   implicit class genStatement(node:Statement) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       node match {
         case n:ForEachStmt => n.genCode(ctx, numsIntent)
         case n:LocalClassDeclarationStmt => n.genCode(ctx, numsIntent)
@@ -383,12 +385,11 @@ trait EnrichedTrees extends utils.Common {
         case n:SynchronizedStmt => n.genCode(ctx, numsIntent)
         case n:BlockStmt => n.genCode(ctx, numsIntent)
       }
-
     }
   }
 
   implicit class genForEachStmt(node:ForEachStmt) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       val integral = node.getIterable
       val variable = node.getVariable
       val body = node.getBody
@@ -404,13 +405,13 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genLocalClassDeclarationStmt(node:LocalClassDeclarationStmt) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit  = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       node.getClassDeclaration.genCode(ctx)
     }
   }
 
   implicit class genContinueStmt(node:ContinueStmt) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit  = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       val label =  node.getLabel
       ctx.append(if (ctx.isAbstract) ctx.ident_maps.getNewContent("continue") else "continue")
       if (label.isPresent) label.get().genCode(ctx, numsIntent)
@@ -420,7 +421,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genExpressionStmt(node:ExpressionStmt) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit  = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       node.getExpression.genCode(ctx, numsIntent)
       if (!node.getParentNode.get().isInstanceOf[Expression]) {
         ctx.append(";")
@@ -430,7 +431,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genLabeledStmt(node:LabeledStmt) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit  = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       val label = node.getLabel
       val sts = node.getStatement
 
@@ -445,7 +446,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genYieldStmt(node:YieldStmt) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit  = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       ctx.append(if (ctx.isAbstract) ctx.ident_maps.getNewContent("yield") else "yield")
       node.getExpression.genCode(ctx, numsIntent)
       ctx.append(";")
@@ -454,7 +455,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genReturnStmt(node:ReturnStmt) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit  = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       ctx.append(if (ctx.isAbstract) ctx.ident_maps.getNewContent("return") else "return")
       val expr = node.getExpression
       if (expr.isPresent) expr.get().genCode(ctx, numsIntent)
@@ -464,7 +465,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genWhileStmt(node:WhileStmt) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit  = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       val body = node.getBody
       val condition = node.getCondition
       ctx.append(if (ctx.isAbstract) ctx.ident_maps.getNewContent("while") else "while")
@@ -477,21 +478,21 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genEmptyStmt(node:EmptyStmt) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit  = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       ctx.append(";")
       ctx.appendNewLine()
     }
   }
 
   implicit class genUnparsableStmt(node:UnparsableStmt) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit  = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       //TODO, not for this project
       ctx.append(node.toString, numsIntent)
     }
   }
 
   implicit class genIfStmt(node:IfStmt) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit  = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       val condition = node.getCondition
       val thenStmt = node.getThenStmt
       val elseStmt = node.getElseStmt
@@ -513,7 +514,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genBreakStmt(node:BreakStmt) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit  = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       val label = node.getLabel
       ctx.append(if (ctx.isAbstract) ctx.ident_maps.getNewContent("break") else "break")
       if (label.isPresent) label.get().genCode(ctx, numsIntent)
@@ -524,7 +525,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genAssertStmt(node:AssertStmt) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit  = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       val check = node.getCheck
       val msg = node.getMessage
 
@@ -542,14 +543,14 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genExplicitConstructorInvocationStmt(node:ExplicitConstructorInvocationStmt) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit  = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       //TODO, not for this project
       ctx.append(node.toString, numsIntent)
     }
   }
 
   implicit class genDoStmt(node:DoStmt) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit  = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       val body = node.getBody
       val condition = node.getCondition
 
@@ -565,7 +566,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genForStmt(node:ForStmt) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit  = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       ctx.append(if (ctx.isAbstract) ctx.ident_maps.getNewContent("for") else "for")
       ctx.append("(")
       val initial = node.getInitialization
@@ -593,7 +594,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genThrowStmt(node:ThrowStmt) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit  = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       ctx.append(if (ctx.isAbstract) ctx.ident_maps.getNewContent("throw") else "throw")
       ctx.append(if (ctx.isAbstract) ctx.ident_maps.getNewContent("new") else "new")
       node.getExpression.genCode(ctx)
@@ -602,7 +603,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genTryStmt(node:TryStmt) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit  = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       //TODO not for this project
       val tryResources = node.getResources
       val tryCatch = node.getCatchClauses
@@ -628,7 +629,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genCatchClause(node:CatchClause) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit  = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       val parameter = node.getParameter
       val body = node.getBody
       ctx.append(if (ctx.isAbstract) ctx.ident_maps.getNewContent("catch") else "catch")
@@ -642,7 +643,7 @@ trait EnrichedTrees extends utils.Common {
 
 
   implicit class genSwitchStmt(node:SwitchStmt) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit  = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
 
       val entries = node.getEntries
       val selector = node.getSelector
@@ -661,7 +662,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genSynchronizedStmt(node:SynchronizedStmt) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit  = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       ctx.append(if (ctx.isAbstract) ctx.ident_maps.getNewContent("synchronized") else "synchronized")
       ctx.append("(")
       node.getExpression.genCode(ctx, numsIntent)
@@ -671,7 +672,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genBlockStmt(node:BlockStmt) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit  = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       ctx.append("{")
       ctx.appendNewLine()
       node.getStatements.foreach(sts => sts.genCode(ctx, numsIntent))
@@ -683,7 +684,7 @@ trait EnrichedTrees extends utils.Common {
 
   /******************************* Expression ********************************/
   implicit class genExpression(node:Expression){
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       node match {
         case expr:ArrayAccessExpr  => expr.genCode(ctx, numsIntent)
         case expr:ClassExpr  => expr.genCode(ctx, numsIntent)
@@ -715,7 +716,7 @@ trait EnrichedTrees extends utils.Common {
 
 
   implicit class genArrayAccessExpr(node:ArrayAccessExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       val name = node.getName
       val index = node.getIndex
       name.genCode(ctx, numsIntent)
@@ -727,7 +728,7 @@ trait EnrichedTrees extends utils.Common {
 
 
   implicit class genClassExpr(node:ClassExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit= {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit= {
 
       ctx.append(if (ctx.isAbstract) ctx.ident_maps.getNewContent("Object") else "Object")
       ctx.append(".")
@@ -738,7 +739,7 @@ trait EnrichedTrees extends utils.Common {
 
 
   implicit class genLambdaExpr(node:LambdaExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
 
       val parameters = node.getParameters
 
@@ -764,7 +765,7 @@ trait EnrichedTrees extends utils.Common {
 
 
   implicit class genArrayCreationExpr(node:ArrayCreationExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
 
       val eleType = node.getElementType
       val initial = node.getInitializer
@@ -784,7 +785,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genConditionalExpr(node:ConditionalExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       val condition = node.getCondition
       val thenExpr = node.getThenExpr
       val elseExpr = node.getElseExpr
@@ -798,7 +799,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genMethodCallExpr(node:MethodCallExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
 
       val scope = node.getScope
       val arguments = node.getArguments
@@ -831,14 +832,14 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genAnnotationExpr(node:AnnotationExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       //TODO, not for this projects
       ctx.append(node.toString)
     }
   }
 
   implicit class genAssignExpr(node:AssignExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit= {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit= {
       val left = node.getTarget
       val right = node.getValue
       val op = node.getOperator
@@ -854,7 +855,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genInstanceOfExpr(node:InstanceOfExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       node.getExpression.genCode(ctx)
       ctx.append(if (ctx.isAbstract) ctx.ident_maps.getNewContent("instanceof") else "instanceof")
       node.getType.genCode(ctx)
@@ -862,13 +863,13 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genThisExpr(node:ThisExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       ctx.append(if (ctx.isAbstract) ctx.ident_maps.getNewContent("this") else "this")
     }
   }
 
   implicit class genNameExpr(node:NameExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       if (ctx.isAbstract) {
         ctx.append(ctx.variable_maps.getNewContent(node.getName.asString()))
       } else node.getName.genCode(ctx)
@@ -877,7 +878,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genCastExpr(node:CastExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       //TODO no implement for this project
       ctx.append("(")
       node.getType.genCode(ctx)
@@ -889,7 +890,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genMethodReferenceExpr(node:MethodReferenceExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       val ident = node.getIdentifier
       val scope = node.getScope
       if (isScopeExpand(scope, ctx)) {
@@ -907,7 +908,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genEnclosedExpr(node:EnclosedExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit= {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit= {
       ctx.append("(")
       node.getInner.genCode(ctx)
       ctx.append(")")
@@ -915,7 +916,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genVariableDeclarationExpr(node:VariableDeclarationExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       node.getModifiers.foreach(_.genCode(ctx, numsIntent))
       val varibles = node.getVariables
       varibles.foreach(_.genCode(ctx, numsIntent))
@@ -923,7 +924,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genSwitchExpr(node:SwitchExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       ctx.append(if (ctx.isAbstract) ctx.ident_maps.getNewContent("switch") else "switch")
       ctx.append("(")
       node.getSelector.genCode(ctx)
@@ -938,7 +939,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genSwitchEntry(node:SwitchEntry) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       //TODO
       val lables = node.getLabels
       val sts = node.getStatements
@@ -961,7 +962,7 @@ trait EnrichedTrees extends utils.Common {
 
   // subclass
   implicit class genLiteralExpr(node:LiteralExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       node match {
         case expr:NullLiteralExpr => ctx.append(expr.toString)
         case expr:BooleanLiteralExpr => ctx.append(expr.getValue.toString)
@@ -971,7 +972,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genLiteralStringValueExpr(node:LiteralStringValueExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       node match {
         case expr: TextBlockLiteralExpr => expr.genCode(ctx, numsIntent)
         case expr: CharLiteralExpr => expr.genCode(ctx, numsIntent)
@@ -984,42 +985,42 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genTextBlockLiteralExpr(node:TextBlockLiteralExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       val value = if (ctx.isAbstract) ctx.textBlock_maps.getNewContent(node.getValue) else node.asString()
       ctx.append(value)
     }
   }
 
   implicit class genCharLiteralExpr(node:CharLiteralExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       val value = if (ctx.isAbstract) ctx.char_maps.getNewContent(node.getValue) else node.asChar().toString
       ctx.append(value)
     }
   }
 
   implicit class genDoubleLiteralExpr(node:DoubleLiteralExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       val value = if (ctx.isAbstract)  ctx.double_maps.getNewContent(node.getValue) else node.asDouble().toString
       ctx.append(value)
     }
   }
 
   implicit class genLongLiteralExpr(node:LongLiteralExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       val value = if (ctx.isAbstract)  ctx.long_maps.getNewContent(node.getValue) else node.asNumber().toString
       ctx.append(value)
     }
   }
 
   implicit class genStringLiteralExpr(node:StringLiteralExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       val value = if (ctx.isAbstract)  ctx.string_maps.getNewContent(node.getValue) else node.asString()
       ctx.append("\"" + value + "\"")
     }
   }
 
   implicit class genIntegerLiteralExpr(node:IntegerLiteralExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       val value = if (ctx.isAbstract)  ctx.int_maps.getNewContent(node.getValue) else node.asNumber().toString
       ctx.append(value)
     }
@@ -1032,7 +1033,7 @@ trait EnrichedTrees extends utils.Common {
    * @param node
    */
   implicit class genObjectCreationExpr(node:ObjectCreationExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       val arguments = node.getArguments
       val scope = node.getScope
       val tp = node.getType
@@ -1064,7 +1065,7 @@ trait EnrichedTrees extends utils.Common {
 
 
   implicit class genSuperExpr(node:SuperExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
 
       val tpName = node.getTypeName
 
@@ -1077,7 +1078,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genUnaryExpr(node:UnaryExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       val op = node.getOperator.asString()
       val expr = node.getExpression
       if (node.isPostfix) {
@@ -1092,7 +1093,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genBinaryExpr(node:BinaryExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       val left = node.getLeft
       val op = node.getOperator.asString()
       val right = node.getRight
@@ -1103,7 +1104,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genFieldAccessExpr(node:FieldAccessExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
 
       if (isScopeExpand(node.getScope, ctx)){
         node.getScope.genCode(ctx, numsIntent)
@@ -1126,13 +1127,13 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genTypeExpr(node:TypeExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       node.getType.genCode(ctx, numsIntent)
     }
   }
 
   implicit class genArrayInitializerExpr(node:ArrayInitializerExpr) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       val values = node.getValues
       ctx.append("{")
       values.foreach(ele => {
@@ -1145,7 +1146,7 @@ trait EnrichedTrees extends utils.Common {
 
   /******************************* Variable ********************************/
   implicit class genVariableDeclarator(node: VariableDeclarator) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       val tp = node.getType
       val name = node.getName
       val init = node.getInitializer
@@ -1172,21 +1173,22 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genSimpleName(node:SimpleName) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       ctx.append(node.getIdentifier)
       val ident = node.getIdentifier
-      if (ident == "String")  ctx.tgt = node.asInstanceOf[Node]
+//      if (ident == "c")  ctx.src = node.asInstanceOf[Node]
+//      if (ident == "b")  ctx.tgt = node.asInstanceOf[Node]
     }
   }
 
   implicit class genModifier(node: Modifier) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       ctx.append(node.getKeyword.asString())
     }
   }
 
   implicit class genType(node:Type) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = if (!node.asString().isEmpty){
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = if (!node.asString().isEmpty){
       node match {
         case tp:UnionType  =>{
           ctx.append(if (ctx.isAbstract) ctx.type_maps.getNewContent(node.asString()) else node.asString())
@@ -1215,7 +1217,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genReferenceType(node:ReferenceType) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       node match {
         case tp: ArrayType => tp.genCode(ctx, numsIntent)
         case tp: TypeParameter => tp.genCode(ctx, numsIntent)
@@ -1229,7 +1231,7 @@ trait EnrichedTrees extends utils.Common {
    * @param node
    */
   implicit class genArrayType(node:ArrayType) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       //TODO, need more details about
       val origin = node.getOrigin
       val comType = node.getComponentType
@@ -1240,7 +1242,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genTypeParameter(node:TypeParameter) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       val name = node.getName
       val typeBound = node.getTypeBound
 
@@ -1259,7 +1261,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genClassOrInterfaceType(node:ClassOrInterfaceType) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       val scope = node.getScope
       val name = node.getName
       val tps = node.getTypeArguments
@@ -1285,7 +1287,7 @@ trait EnrichedTrees extends utils.Common {
 
 
   implicit class genParameter(node:Parameter) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       val modifiers = node.getModifiers
       val tp = node.getType
       val name = node.getName
@@ -1302,7 +1304,7 @@ trait EnrichedTrees extends utils.Common {
   }
 
   implicit class genName(node:Name) {
-    def genCode(ctx:Context, numsIntent:Int=0):Unit = {
+    def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
 
       //TODO with Qualifier
       val qualifier = node.getQualifier
@@ -1314,8 +1316,6 @@ trait EnrichedTrees extends utils.Common {
         ctx.append(".")
       }
       if (ctx.isAbstract) ctx.append(ctx.variable_maps.getNewContent(node.getIdentifier)) else ctx.append(node.getIdentifier)
-
-      if (node.getIdentifier == "org")  ctx.src = node.asInstanceOf[Node]
 
     }
   }

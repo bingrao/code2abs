@@ -9,14 +9,8 @@ class TestAbstract extends TestUtils {
   @Test def testAbstract() {
     val inputClass =
       """
-        |package org.ucf.ml;
-        |
         |public class JavaApp {
-        |
         |    public void hello(String input) {
-        |
-        |        Int a = 3;
-        |        Int b = 4;
         |        Int c = a + b;
         |    }
         |}
@@ -40,4 +34,5 @@ class TestAbstract extends TestUtils {
     val fixed = s"data/raw/fixed/${file_index}.java"
     single_task(buggy, fixed)
   }
+
 }

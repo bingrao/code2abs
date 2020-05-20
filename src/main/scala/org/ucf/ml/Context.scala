@@ -4,7 +4,22 @@ import java.util.concurrent.atomic.AtomicInteger
 import org.ucf.ml.utils.{Common, Count}
 import scala.collection.mutable
 import com.github.javaparser.ast.Node
+import scala.collection.mutable.HashMap
 class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) extends Common {
+
+  /**
+   *
+   */
+
+  val positionalEmbedding = new HashMap[Node, PositionEmbeddingType]
+
+  def getPositionalEmbedding(node:Node) = positionalEmbedding.get(node)
+
+  def positionalEmbeddingIsContain(node: Node) = this.positionalEmbedding.contains(node)
+
+  def addPositionalEmbedding(node: Node, pos:PositionEmbeddingType) =
+    this.positionalEmbedding.+=(node -> pos)
+
 
   var src:Node = null
   var tgt:Node = null
@@ -57,7 +72,10 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
   var isAbstract = false
   def setIsAbstract(value:Boolean) = this.isAbstract = value
 
-  def getGranularity = granularity
+
+  private var gran = granularity
+  def getGranularity = gran
+  def setGranularity(value:Value) = this.gran = value
   ///////////////////////////////////////////////////////////////////////////////////////
   /********************* set up and look up statistical data ***************************/
 

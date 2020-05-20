@@ -10,7 +10,7 @@ import com.github.javaparser.ast.{Node, PackageDeclaration}
 import com.github.javaparser.ast.`type`.Type
 import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.body.MethodDeclaration
-import com.github.javaparser.ast.expr.{MethodCallExpr, MethodReferenceExpr, SimpleName}
+import com.github.javaparser.ast.expr.{MethodCallExpr, MethodReferenceExpr, NameExpr, SimpleName}
 
 import scala.collection.JavaConversions._
 import java.util.stream.Collectors
@@ -69,6 +69,17 @@ trait Visitor extends EnrichedTrees {
     }
   }
 
+  case class genPostionVisitor(ctx:Context) extends TreeVisitor {
+    override def process(node: Node): Unit = node match {
+      case n:MethodDeclaration => {
+        val pos = List.fill(n.getParentNode.get().getChildNodes.size)(0.0)
+        ctx.addPositionalEmbedding(node, pos)
+      }
+      case _ => node.getPositionalEmbedding(ctx)
+    }
+
+  }
+
   def getMethodCall(cu:CompilationUnit) =
     cu.findAll(classOf[MethodCallExpr])
       .stream()
@@ -106,4 +117,27 @@ trait Visitor extends EnrichedTrees {
   }
 
   def addPositionWithGenCode(ctx:Context, cu:CompilationUnit) = cu.genCode(ctx)
+
+  def genPositionEmbedding(ctx:Context, cu:CompilationUnit) = {
+    val pos = List.fill(cu.getChildNodes.size())(0.0)
+    ctx.addPositionalEmbedding(cu, pos)
+    val tree = genPostionVisitor(ctx)
+    tree.visitBreadthFirst(cu)
+//    tree.visitLeavesFirst(cu)
+    logger.info(s"Position nums ${ctx.positionalEmbedding.size}")
+
+    ctx.positionalEmbedding.foreach{case (key, value) => {
+
+      val name = if (key.isInstanceOf[SimpleName])
+        key.asInstanceOf[SimpleName].asString()
+      else if (key.isInstanceOf[NameExpr])
+        key.asInstanceOf[NameExpr].getNameAsString
+      else EmptyString
+
+      println(s"${value.reverse.toString()} <- ${key.getClass.getName}-[${name}]")
+    }}
+
+  }
+
+
 }

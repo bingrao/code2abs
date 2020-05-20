@@ -7,6 +7,7 @@ package object ml extends Enumeration {
   final val unSupportNotice = "[***UNSUPPORT***]"
   final val EmptyString:String = ""  // recursive function return value for gencode func in implicit class
 
+  type PositionEmbeddingType = List[Double]
 
   // input file format
   val CLASS = Value("class")
@@ -31,9 +32,10 @@ package object ml extends Enumeration {
     //https://alvinalexander.com/scala/scala-functions-repeat-character-n-times-padding-blanks
     def getIndent(nums:Int) = "\t" * nums
     def printPretty(sb:mutable.StringBuilder, numsIntent:Int) = sb.append("")
-
-
-
   }
+
+  // https://en.wikipedia.org/wiki/List_of_Unicode_characters#Arrows
+  def getUpArrow = " " + '\u2191' + " "
+  def getDownArrow = " " + '\u2193' + " "
 }
 

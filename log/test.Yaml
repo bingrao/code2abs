@@ -1,12 +1,5 @@
 ---
 root(Type=CompilationUnit): 
-    packageDeclaration(Type=PackageDeclaration): 
-        name(Type=Name): 
-            identifier: "ml"
-            qualifier(Type=Name): 
-                identifier: "ucf"
-                qualifier(Type=Name): 
-                    identifier: "org"
     types: 
         - type(Type=ClassOrInterfaceDeclaration): 
             isInterface: "false"
@@ -16,28 +9,6 @@ root(Type=CompilationUnit):
                 - member(Type=MethodDeclaration): 
                     body(Type=BlockStmt): 
                         statements: 
-                            - statement(Type=ExpressionStmt): 
-                                expression(Type=VariableDeclarationExpr): 
-                                    variables: 
-                                        - variable(Type=VariableDeclarator): 
-                                            initializer(Type=IntegerLiteralExpr): 
-                                                value: "3"
-                                            name(Type=SimpleName): 
-                                                identifier: "a"
-                                            type(Type=ClassOrInterfaceType): 
-                                                name(Type=SimpleName): 
-                                                    identifier: "Int"
-                            - statement(Type=ExpressionStmt): 
-                                expression(Type=VariableDeclarationExpr): 
-                                    variables: 
-                                        - variable(Type=VariableDeclarator): 
-                                            initializer(Type=IntegerLiteralExpr): 
-                                                value: "4"
-                                            name(Type=SimpleName): 
-                                                identifier: "b"
-                                            type(Type=ClassOrInterfaceType): 
-                                                name(Type=SimpleName): 
-                                                    identifier: "Int"
                             - statement(Type=ExpressionStmt): 
                                 expression(Type=VariableDeclarationExpr): 
                                     variables: 

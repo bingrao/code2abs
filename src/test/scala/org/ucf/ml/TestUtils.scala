@@ -10,8 +10,8 @@ trait TestUtils extends parser.JavaParser with utils.Common {
   def get_abstract_code(sourcePath:String, granularity:Value, isFile:Boolean = true) = {
 
     ctx.setCurrentMode(SOURCE)
-//    ctx.setNewLine(true)
-//    ctx.setIsAbstract(true)
+    ctx.setGranularity(granularity)
+
     val cu = getComplationUnit(sourcePath, granularity, isFile)
 
     printAST(outPath="log/test.Yaml", cu = cu, format = "ymal")

@@ -21,7 +21,6 @@ import tree.EnrichedTrees
 
 trait Visitor extends EnrichedTrees {
 
-
   case class TypeCalculatorVisitor() extends VoidVisitorAdapter[JavaParserFacade] {
     override def visit(n:ReturnStmt, arg:JavaParserFacade) = {
       super.visit(n, arg)
@@ -44,6 +43,7 @@ trait Visitor extends EnrichedTrees {
     }
   }
 
+  @deprecated
   case class MethodNameCollector() extends VoidVisitorAdapter[ListBuffer[String]] {
     override def visit(md:MethodDeclaration, c:ListBuffer[String]): Unit = {
       c.+=(md.getNameAsString)
@@ -69,10 +69,16 @@ trait Visitor extends EnrichedTrees {
     }
   }
 
+  /**
+   *  A tree visitor to generate the corresponding node's positional embedding
+   * @param ctx
+   */
   case class genPostionVisitor(ctx:Context) extends TreeVisitor {
     override def process(node: Node): Unit = node match {
+
+      // We initially set up positional embedding of a method as start point: [0.0]
       case n:MethodDeclaration => {
-        val pos = List.fill(n.getParentNode.get().getChildNodes.size)(0.0)
+        val pos = List.fill(1)(0.0)
         ctx.addPositionalEmbedding(node, pos)
       }
       case _ => node.getPositionalEmbedding(ctx)
@@ -111,33 +117,10 @@ trait Visitor extends EnrichedTrees {
       .toList
 
   @deprecated
-  def addPosition(ctx:Context, cu:CompilationUnit) = {
-    val tree = addPositionVisitor(ctx)
-    tree.visitBreadthFirst(cu)
-  }
+  def addPosition(ctx:Context, cu:CompilationUnit) = addPositionVisitor(ctx).visitBreadthFirst(cu)
 
-  def addPositionWithGenCode(ctx:Context, cu:CompilationUnit) = cu.genCode(ctx)
+  def genAbstractCode(ctx:Context, cu:CompilationUnit) = cu.genCode(ctx)
 
-  def genPositionEmbedding(ctx:Context, cu:CompilationUnit) = {
-    val pos = List.fill(cu.getChildNodes.size())(0.0)
-    ctx.addPositionalEmbedding(cu, pos)
-    val tree = genPostionVisitor(ctx)
-    tree.visitBreadthFirst(cu)
-//    tree.visitLeavesFirst(cu)
-    logger.info(s"Position nums ${ctx.positionalEmbedding.size}")
-
-    ctx.positionalEmbedding.foreach{case (key, value) => {
-
-      val name = if (key.isInstanceOf[SimpleName])
-        key.asInstanceOf[SimpleName].asString()
-      else if (key.isInstanceOf[NameExpr])
-        key.asInstanceOf[NameExpr].getNameAsString
-      else EmptyString
-
-      println(s"${value.reverse.toString()} <- ${key.getClass.getName}-[${name}]")
-    }}
-
-  }
-
+  def genPositionEmbedding(ctx:Context, cu:CompilationUnit) = genPostionVisitor(ctx).visitBreadthFirst(cu)
 
 }

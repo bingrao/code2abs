@@ -31,7 +31,7 @@ class Worker(src_batch:List[String] = null,
 
     val cu = javaPaser.getComplationUnit(inputPath, granularity)
 
-    javaPaser.addPositionWithGenCode(ctx, cu)
+    javaPaser.genAbstractCode(ctx, cu)
   }
 
   def task(buggyPath:String, fixedPath:String, last:Boolean=false) = {

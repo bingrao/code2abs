@@ -6,6 +6,18 @@ import org.junit.Test
 import org.junit.Assert._
 
 class TestAbstract extends TestUtils {
+
+  @Test def testAbstractAPI() {
+    val inputClass =
+      """
+        | public void hello(String input) {
+        |   Int c = a + b;
+        | }
+        |""".stripMargin
+    val code = getAbstractCode(inputClass, granularity = METHOD, isFile = false)
+    println(code)
+  }
+
   @Test def testAbstract() {
     val inputClass =
       """

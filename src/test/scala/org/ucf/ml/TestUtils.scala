@@ -2,6 +2,9 @@ package org.ucf.ml
 
 import java.io.File
 
+import com.github.javaparser.ast.CompilationUnit
+import com.github.javaparser.ast.expr.{NameExpr, SimpleName}
+
 trait TestUtils extends parser.JavaParser with utils.Common {
   // Load data idioms
   private val idioms = readIdioms()
@@ -17,7 +20,7 @@ trait TestUtils extends parser.JavaParser with utils.Common {
     printAST(outPath="log/test.Yaml", cu = cu, format = "ymal")
     printAST(outPath="log/test.dot", cu = cu, format = "dot")
 
-    addPositionWithGenCode(ctx, cu)
+    genAbstractCode(ctx, cu)
 
     println(cu)
     println("***************************************************")
@@ -37,7 +40,7 @@ trait TestUtils extends parser.JavaParser with utils.Common {
 
     val cu = getComplationUnit(inputPath, granularity)
 
-    addPositionWithGenCode(ctx, cu)
+    genAbstractCode(ctx, cu)
 
     if (logger.isDebugEnabled) {
       logger.debug(f"process ${mode} Source code ${inputPath}")
@@ -58,6 +61,23 @@ trait TestUtils extends parser.JavaParser with utils.Common {
 
     /*Clear the context and */
     ctx.clear
+  }
+
+
+  def genAndPrintPositionEmbedding(ctx:Context, cu:CompilationUnit) = {
+    genPositionEmbedding(ctx, cu)
+    logger.info(s"Position nums ${ctx.positionalEmbedding.size}")
+
+    ctx.positionalEmbedding.foreach{case (key, value) => {
+
+      val name = if (key.isInstanceOf[SimpleName])
+        key.asInstanceOf[SimpleName].asString()
+      else if (key.isInstanceOf[NameExpr])
+        key.asInstanceOf[NameExpr].getNameAsString
+      else EmptyString
+
+      println(s"${value.reverse.toString()} <- ${key.getClass.getName}-[${name}]")
+    }}
   }
 
 }

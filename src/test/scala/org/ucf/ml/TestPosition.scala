@@ -18,6 +18,6 @@ class TestPosition extends TestUtils{
     printAST(outPath="log/test.Yaml", cu = cu, format = "ymal")
     printAST(outPath="log/test.dot", cu = cu, format = "dot")
 
-    genPositionEmbedding(ctx, cu)
+    genAndPrintPositionEmbedding(ctx, cu)
   }
 }

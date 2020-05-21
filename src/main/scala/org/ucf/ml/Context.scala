@@ -21,8 +21,6 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
     this.positionalEmbedding.+=(node -> pos)
 
 
-  var src:Node = null
-  var tgt:Node = null
   /*AST Tree Node Position*/
   private val position_offset = new AtomicInteger()
   def getNewPosition = position_offset.getAndIncrement()
@@ -69,7 +67,7 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
 
 
   /* Generating abstrace code */
-  var isAbstract = false
+  var isAbstract = true
   def setIsAbstract(value:Boolean) = this.isAbstract = value
 
 

@@ -41,13 +41,67 @@ class JavaParser extends Visitor  {
       e.printStackTrace()
   }
 
-  def getComplationUnit(sourcePath:String, granularity:Value, isFile:Boolean = true) = {
+  /**
+   *
+   * @param sourcePath
+   * @param granularity
+   * @param isFile
+   * @return
+   */
+  def getComplationUnit(sourcePath:String, granularity:Value, isFile:Boolean = true):CompilationUnit = {
     val source = Granularity.apply(sourcePath, granularity, isFile).getSourceCode()
     StaticJavaParser.parse(source)
   }
 
+  def getAbstractCode(sourcePath:String, idiomPath:String = "idioms/idioms.csv",
+                      granularity:Value = METHOD, isFile:Boolean = false) = {
+    val project_idioms = readIdioms(idiomPath)
+    val context = new Context(project_idioms, granularity)
+    val cu = getComplationUnit(sourcePath, granularity, isFile)
+
+    /**Traverse AST to generate corresponding node's positional embedding**/
+    genPositionEmbedding(context, cu)
+
+    /**Traverse AST to gen abstract code**/
+    genAbstractCode(context, cu)
+
+    context.get_buggy_abstract
+  }
+
+  /******************************************  [[APIs for Python Call]] **********************************************/
+  /**
+   *  The following four APIs is provided to work with python script to get abstract code
+   *  Step 1: Execute Scala code [[GatewayServer]] to initial a py4j gateway server with [[JavaParser]] entry point
+   *
+   *  Step 2: Execute following python to load [[JavaGateWay]] interface to communicate with jvm to retrieve
+   *  corresponding objects. Please be aware that if you use relative path for your input parameters, you need them
+   *  to be relative to [[GatewayServer]] path, rather than the currenting python executing path.
+   *
+   *  >>> from py4j.java_gateway import JavaGateway
+   *  >>> gateway = JavaGateway()
+   *  >>> input = "void method(String input) { Int a = b + 1; }"
+   *  >>> gateway.entry_point.getAbstractCodeFromStringMethod(input, "idioms/idioms.csv")
+   *  'void method ( String Varl_0 ) { Type_0 a = b + 1 ; } '
+   *
+   *  Reference: https://www.py4j.org/getting_started.html
+   */
+  def getAbstractCodeFromStringMethod(sourcePath:String, idiomPath:String = "idioms/idioms.csv") =
+    getAbstractCode(sourcePath, idiomPath, METHOD, false)
+
+  def getAbstractCodeFromStringClass(sourcePath:String, idiomPath:String = "idioms/idioms.csv") =
+    getAbstractCode(sourcePath, idiomPath, CLASS, false)
+
+  def getAbstractCodeFromFileMethod(sourcePath:String, idiomPath:String = "idioms/idioms.csv") =
+    getAbstractCode(sourcePath, idiomPath, METHOD, true)
+
+  def getAbstractCodeFromFileString(sourcePath:String, idiomPath:String = "idioms/idioms.csv") =
+    getAbstractCode(sourcePath, idiomPath, CLASS, true)
+
+
+  @deprecated
   def getTokens(cu:CompilationUnit) = cu.getTokenRange.get().toList
 
+  @deprecated
   def readTokens(filePath:String, granularity:Value, isFile:Boolean = true):List[JavaToken] = {
     val cu = this.getComplationUnit(filePath, granularity)
     this.getTokens(cu)

@@ -43,7 +43,7 @@ trait Common {
   }
 
   /*load Data idioms from existing file*/
-  def readIdioms(filePath:String = "idioms/idioms.csv") = {
+  def readIdioms(filePath:String = "data/idioms/idioms.csv") = {
     var idioms = new mutable.HashSet[String]()
     try{
       val stream = Files.lines(Paths.get(filePath))

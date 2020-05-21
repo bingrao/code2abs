@@ -1,0 +1,10 @@
+public void Method_0 ( ) { Varl_0 . Method_1 ( Varl_1 . Ident_0 , "String_0" ) ; Method_3 ( ) ; super . Method_0 ( ) ; } 
+public void Method_0 ( ) { Varl_0 . setState ( 1 ) ; } 
+public void Method_0 ( ) { Varl_0 . Method_1 ( Varl_1 . Ident_0 ) ; } 
+public Type_0 Method_0 ( float Varl_0 , int Varl_1 , int Varl_2 , float [ ] Varl_3 ) { Type_0 Varl_4 = new Type_1 ( new Type_2 ( Varl_0 , Varl_1 , Varl_2 ) , Varl_6 ) ; return Varl_4 ; } 
+public boolean Method_0 ( java.lang.String Varl_0 ) { return ( Method_1 ( Varl_0 ) ) >= 0 ; } 
+public void delete ( java.lang.Long id ) { Type_0 Varl_0 = Varl_1 . Method_0 ( Ident_0 . Type_0 , id ) ; Varl_1 . remove ( Varl_0 ) ; } 
+private void Method_0 ( ) { int Varl_0 = Varl_1 . x ; int Varl_2 = Varl_1 . y ; if ( ! ( Method_1 ( Varl_0 , Varl_2 , Varl_3 . Ident_0 ) ) ) { Varl_2 ++ ; } Method_2 ( Varl_0 , Varl_2 , Varl_3 . Ident_0 ) ; } 
+public void Method_0 ( java.lang.String id ) { android.content.Intent i = new android.content.Intent ( ) ; i . Method_1 ( getActivity ( ) , Ident_0 . Type_0 ) ; i . Method_2 ( "id" , id ) ; Method_3 ( i ) ; } 
+private void Method_0 ( java.lang.String Varl_0 ) { } 
+public static void main ( java.lang.String [ ] args ) throws java.lang.Exception { Varl_0 . Method_0 ( Varl_0 . Ident_0 , "String_0" , Integer_0 , Integer_1 ) ; } 

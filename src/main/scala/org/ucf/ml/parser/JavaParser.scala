@@ -53,7 +53,7 @@ class JavaParser extends Visitor  {
     StaticJavaParser.parse(source)
   }
 
-  def getAbstractCode(sourcePath:String, idiomPath:String = "idioms/idioms.csv",
+  def getAbstractCode(sourcePath:String, idiomPath:String = "data/idioms/idioms.csv",
                       granularity:Value = METHOD, isFile:Boolean = false) = {
     val project_idioms = readIdioms(idiomPath)
     val context = new Context(project_idioms, granularity)

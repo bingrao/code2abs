@@ -7,6 +7,7 @@ mvn exec:java -Dexec.mainClass="akka.Main" -Dexec.args="com.jhh.HelloWorld"
 
 #Run Scala Program
 ```
+scala -Dlog4j.configuration=conf/template-log4j.properties target/java_abstract-1.0-jar-with-dependencies.jar conf/template-application.conf
 mvn scala:run -DmainClass=com.jhh.App -DaddArgs="arg1|arg2|arg3"
 ```
 

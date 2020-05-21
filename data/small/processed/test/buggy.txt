@@ -1,10 +1,10 @@
-public void Method_0 ( ) { if ( ! ( Varl_0 . Ident_0 ) ) { Varl_0 . Ident_0 = true ; Method_1 ( ) ; } else { Varl_0 . Ident_0 = false ; Method_2 ( ) ; } } 
-public static void main ( java.lang.String [ ] a ) { Varl_0 . Method_0 ( ) ; Varl_0 . Method_1 ( ) ; Varl_0 . Method_2 ( ) ; Varl_0 . Method_3 ( ) ; Varl_0 . Method_4 ( ) ; } 
-public void Method_0 ( final Type_0 Varl_0 ) { final java.lang.String Varl_1 = Varl_0 . Method_1 ( ) ; Varl_2 . Method_2 ( Varl_1 ) ; } 
-public Type_0 Method_0 ( Type_1 context ) { int offset = context . Method_1 ( ) ; Type_0 Varl_0 = context . Method_2 ( ) . Method_3 ( offset ) . Method_4 ( ) . Method_4 ( ) ; return Varl_0 ; } 
-private void Method_0 ( java.lang.String Varl_0 ) { Varl_1 . Method_0 ( ( ( ( ( Varl_2 ) + "String_0" ) + "String_1" ) + Varl_0 ) ) ; } 
-public static Type_0 Method_0 ( int Varl_0 ) { return new Type_0 ( Varl_0 , new Type_1 ( ) ) ; } 
-public void Method_0 ( Type_0 result ) { Varl_0 . Method_1 ( "String_0" , result . toString ( ) ) ; Varl_1 . Method_2 ( 0 ) ; Varl_2 . add ( 0 , result ) ; Varl_3 . Method_3 ( Varl_2 ) ; } 
-public void Method_0 ( Type_0 Varl_0 , long Varl_1 , long Varl_2 ) { if ( ( this ) != ( Varl_3 ) ) { return ; } Method_1 ( ) ; } 
-void Method_0 ( Type_0 Varl_0 , Type_1 state ) 
-public static void main ( java.lang.String [ ] args ) throws java.lang.Exception { Varl_0 . Method_0 ( Varl_1 . Method_1 ( ) , "String_0" , Integer_0 , Integer_1 ) ; } 
+public void Method_0 ( ) { if ( ! ( Varl_0 . Ident_0 ) ) { Varl_0 . Ident_0 = true ; Method_1 ( ) ; } else { Varl_0 . Ident_0 = false ; Method_2 ( ) ; } }
+public static void main ( java.lang.String [ ] a ) { Varl_0 . Method_0 ( ) ; Varl_0 . Method_1 ( ) ; Varl_0 . Method_2 ( ) ; Varl_0 . Method_3 ( ) ; Varl_0 . Method_4 ( ) ; }
+public void Method_0 ( final Type_0 Varl_0 ) { final java.lang.String Varl_1 = Varl_0 . Method_1 ( ) ; Varl_2 . Method_2 ( Varl_1 ) ; }
+public Type_0 Method_0 ( Type_1 context ) { int offset = context . Method_1 ( ) ; Type_0 Varl_0 = context . Method_2 ( ) . Method_3 ( offset ) . Method_4 ( ) . Method_4 ( ) ; return Varl_0 ; }
+private void Method_0 ( java.lang.String Varl_0 ) { Varl_1 . Method_0 ( ( ( ( ( Varl_2 ) + "String_0" ) + "String_1" ) + Varl_0 ) ) ; }
+public static Type_0 Method_0 ( int Varl_0 ) { return new Type_0 ( Varl_0 , new Type_1 ( ) ) ; }
+public void Method_0 ( Type_0 result ) { Varl_0 . Method_1 ( "String_0" , result . toString ( ) ) ; Varl_1 . Method_2 ( 0 ) ; Varl_2 . add ( 0 , result ) ; Varl_3 . Method_3 ( Varl_2 ) ; }
+public void Method_0 ( Type_0 Varl_0 , long Varl_1 , long Varl_2 ) { if ( ( this ) != ( Varl_3 ) ) { return ; } Method_1 ( ) ; }
+void Method_0 ( Type_0 Varl_0 , Type_1 state )
+public static void main ( java.lang.String [ ] args ) throws java.lang.Exception { Varl_0 . Method_0 ( Varl_1 . Method_1 ( ) , "String_0" , Integer_0 , Integer_1 ) ; }

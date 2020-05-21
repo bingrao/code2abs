@@ -1,10 +1,13 @@
 package org.ucf.ml
 
 import java.util.concurrent.atomic.AtomicInteger
+
 import org.ucf.ml.utils.{Common, Count}
+
 import scala.collection.mutable
 import com.github.javaparser.ast.Node
-import scala.collection.mutable.HashMap
+
+import scala.collection.mutable.{HashMap, ListBuffer}
 /**
  *  The Context object is shared by buggy and fixed partially regarding idioms and abstracts
  * @param idioms
@@ -12,12 +15,29 @@ import scala.collection.mutable.HashMap
  */
 class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) extends Common {
 
-  /**
-   *
-   */
+  case class AbstractContext(target:Value) {
+    private val token_abstract = new ListBuffer[String]
+    private val token_position = new ListBuffer[PositionEmbeddingType]
+
+    /*AST Tree Node Position*/
+    private val token_offset = new AtomicInteger()
+
+    def getNewPosition = token_offset.getAndIncrement()
+    def getCurrentPositionOffset = token_offset
+
+    def get_token_abstract = this.token_abstract.mkString(" ")
+    def append_abstract(content:String) = this.token_abstract.+=(content)
+
+
+    def get_token_poistion = this.token_position
+    def append_position(pos:PositionEmbeddingType) = this.token_position.+=(pos)
+  }
+
+  private val buggy_abstract = AbstractContext(SOURCE)
+  private val fixed_abstract = AbstractContext(TARGET)
+  // Shared Object by fixed and buggy
 
   val positionalEmbedding = new HashMap[Node, PositionEmbeddingType]
-
   def getPositionalEmbedding(node:Node) = positionalEmbedding.get(node)
 
   def positionalEmbeddingIsContain(node: Node) = this.positionalEmbedding.contains(node)
@@ -26,49 +46,46 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
     this.positionalEmbedding.+=(node -> pos)
 
 
-  /*AST Tree Node Position*/
-  private val position_offset = new AtomicInteger()
-  def getNewPosition = position_offset.getAndIncrement()
-  def getCurrentPositionOffset = position_offset
-
   // Current work mode
   private var current_mode = SOURCE
   def getCurrentMode = this.current_mode
   def setCurrentMode(target:Value) = {
-    this.position_offset.set(0)
     this.current_mode = target
   }
 
-  /*Data buffer to store parse results*/
-  private val buggy_abstract = new StringBuilder()
-  private val fixed_abstract = new StringBuilder()
 
-  def get_abstract = this.getCurrentMode match {
-    case SOURCE => get_buggy_abstract
-    case TARGET => get_fixed_abstract
+  def getNewPosition = this.getCurrentMode match {
+    case SOURCE => this.buggy_abstract.getNewPosition
+    case TARGET => this.fixed_abstract.getNewPosition
   }
 
-  /**/
-  private var isAddPostion = false
-  def setPosition(value:Boolean) = this.isAddPostion = value
+  def get_abstract = this.getCurrentMode match {
+    case SOURCE => this.buggy_abstract.get_token_abstract
+    case TARGET => this.fixed_abstract.get_token_abstract
+  }
 
-  def attachePosition(content:String) = if (isAddPostion) f"${content}#${this.getNewPosition} " else f"${content} "
+  def append(content:String, numsIntent:Int = 0, position:PositionEmbeddingType = null) = this.getCurrentMode match {
+    case SOURCE => {
+      this.buggy_abstract.append_abstract(content)
+      this.buggy_abstract.append_position(position)
+    }
 
-  def append(content:String, numsIntent:Int = 0) = this.getCurrentMode match {
-    case SOURCE => this.buggy_abstract.append(attachePosition(content))
-    case TARGET => this.fixed_abstract.append(attachePosition(content))
+    case TARGET => {
+      this.fixed_abstract.append_abstract(content)
+      this.fixed_abstract.append_position(position)
+    }
   }
 
   private var isNewLine = false
   def setNewLine(value:Boolean) = this.isNewLine = value
 
   def appendNewLine(level:Int=0):Unit = this.getCurrentMode match {
-    case SOURCE => if (isNewLine) this.buggy_abstract.append("\n")
-    case TARGET => if (isNewLine) this.fixed_abstract.append("\n")
+    case SOURCE => if (isNewLine) this.buggy_abstract.append_abstract("\n")
+    case TARGET => if (isNewLine) this.fixed_abstract.append_abstract("\n")
   }
 
-  def get_buggy_abstract = buggy_abstract.toString()
-  def get_fixed_abstract = fixed_abstract.toString()
+  def get_buggy_abstract = buggy_abstract.get_token_abstract
+  def get_fixed_abstract = fixed_abstract.get_token_abstract
 
 
   /* Generating abstrace code */
@@ -111,25 +128,4 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
     method_maps.dump_data(path)
     variable_maps.dump_data(path)
   }
-
-  def clear = {
-
-    this.position_offset.set(0)
-
-    this.buggy_abstract.append ("\n")
-    this.fixed_abstract.append ("\n")
-
-    this.ident_maps.clear
-    this.textBlock_maps.clear
-    this.string_maps.clear
-    this.char_maps.clear
-    this.int_maps.clear
-    this.float_maps.clear
-    this.long_maps.clear
-    this.double_maps.clear
-    this.type_maps.clear
-    this.method_maps.clear
-    this.variable_maps.clear
-  }
-
 }

@@ -6,57 +6,49 @@ import java.util.concurrent.Callable
 import scala.collection.mutable
 import java.io.File
 
-/**
- *
- * @param src_batch, a list of buggy (source) input files' path
- * @param tgt_batch, a list of fixed (target) input files' path
- * @param idioms, a bag of idioms vocabulary keep by this project
- * @param worker_id, integer id assigned by master
- */
-class Worker(src_batch:List[String] = null,
-             tgt_batch:List[String] = null,
-             idioms:mutable.HashSet[String],
-             worker_id:Int, granularity: Value = METHOD) extends Callable[Context] with utils.Common{
+class Worker(workerContext: WorkerContext) extends Callable[WorkerContext] with utils.Common{
 
-  val javaPaser = new parser.JavaParser
-  val ctx = new Context(idioms, granularity)
-
-  val batch_size = scala.math.min(src_batch.size, tgt_batch.size)
-
-  def abstract_task(inputPath:String, mode:Value, granularity:Value = this.granularity) = {
-
-    ctx.setCurrentMode(mode)
-
-    if (logger.isDebugEnabled) ctx.append(s"[${worker_id}]-${new File(inputPath).getName}\t")
-
-    val cu = javaPaser.getComplationUnit(inputPath, granularity)
-
-    javaPaser.genAbstractCode(ctx, cu)
-  }
+  val javaPaser = workerContext.javaPaser
 
   def task(buggyPath:String, fixedPath:String, last:Boolean=false) = {
+    def _task(ctx:Context, inputPath:String, mode:Value, granularity:Value) = {
+
+      ctx.setCurrentMode(mode)
+
+      if (logger.isDebugEnabled) ctx.append(s"[${workerContext.get_work_id}]-${new File(inputPath).getName}")
+
+      val cu = javaPaser.getComplationUnit(inputPath, granularity)
+
+      javaPaser.genAbstractCode(ctx, cu)
+    }
+
+    val ctx = new Context(workerContext.get_idioms, workerContext.get_granularity)
 
     if ((logger.isDebugEnabled) && (new File(buggyPath).getName != new File(fixedPath).getName)) {
       logger.error(s"[Input]-${buggyPath} != ${fixedPath}")
     }
-    abstract_task(buggyPath, SOURCE)
-    abstract_task(fixedPath, TARGET)
+    _task(ctx, buggyPath, SOURCE, workerContext.get_granularity)
+    _task(ctx, fixedPath, TARGET, workerContext.get_granularity)
 
-    /*Dumpy buggy and fixed abstract code to a specify file*/
 
-    /*Clear the context and */
-    if (!last) ctx.clear
+    workerContext.append_buggy(ctx.get_buggy_abstract)
+    workerContext.append_fixed(ctx.get_fixed_abstract)
+
+    if (!last) {
+      workerContext.append_buggy("\n")
+      workerContext.append_fixed("\n")
+    }
   }
 
-  def job(): Context = {
+  def job(): WorkerContext = {
     val start = System.currentTimeMillis()
     /*Iteration Executing task to handle with all involved in data*/
-    for (idx <- 0 until batch_size) {
-      task(src_batch(idx), tgt_batch(idx), idx == batch_size - 1)
+    for (idx <- 0 until workerContext.batch_size) {
+      task(workerContext.get_src_batch(idx), workerContext.get_tgt_batch(idx), idx == workerContext.batch_size - 1)
     }
     val stop = System.currentTimeMillis()
-    logger.info(f"Worker ${worker_id} deal with ${batch_size} task in ${stop - start} milliseconds")
-    ctx
+    logger.info(f"Worker ${workerContext.get_work_id} deal with ${workerContext.batch_size} task in ${stop - start} milliseconds")
+    workerContext
   }
-  override def call(): Context = job()
+  override def call(): WorkerContext = job()
 }

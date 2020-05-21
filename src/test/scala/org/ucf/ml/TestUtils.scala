@@ -27,7 +27,6 @@ trait TestUtils extends parser.JavaParser with utils.Common {
     println(ctx.get_buggy_abstract.toString)
     println("***************************************************")
     ctx.dumpy_mapping()
-    ctx.clear
   }
 
 
@@ -58,9 +57,6 @@ trait TestUtils extends parser.JavaParser with utils.Common {
     }
     single_abstract_task(buggyPath, SOURCE)
     single_abstract_task(fixedPath, TARGET)
-
-    /*Clear the context and */
-    ctx.clear
   }
 
 

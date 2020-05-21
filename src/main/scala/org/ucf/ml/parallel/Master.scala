@@ -48,11 +48,11 @@ class Master (configPath:String = "src/main/resources/default_application.conf")
         val start = index*batch_size
         val end = if (index == nums_worker - 1) total_files_nums else (index + 1) * batch_size
         logger.info(f"Create a new worker [${index}] to handle Java file indexed from ${start+1} to ${end}")
-        new Worker(src_batch = buggy_files.slice(start, end),
+        new Worker(new WorkerContext(src_batch = buggy_files.slice(start, end),
           tgt_batch = fixed_files.slice(start, end),
           idioms=project_idioms,
           worker_id = index,
-          granularity = METHOD)
+          granularity = METHOD))
       }
 
 

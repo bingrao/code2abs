@@ -47,7 +47,8 @@ trait EnrichedTrees extends utils.Common {
    * @param tgt, target node
    * @return
    */
-  def getPath(src:Node, tgt:Node) = {
+  def getPath(src:Node, tgt:Node):String = {
+
 
     def getPathRecursive(src:Node, tgt:Node,
                          up:ListBuffer[Node], down:ListBuffer[Node]):Unit = {
@@ -72,6 +73,8 @@ trait EnrichedTrees extends utils.Common {
 
       getPathRecursive(srcParent.get(), tgtParent.get(), up, down)
     }
+
+    return EmptyString
 
     val srcUpList = new ListBuffer[Node]
     val tgtDownList = new ListBuffer[Node]

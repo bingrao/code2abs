@@ -6,7 +6,7 @@
 
   	<groupId>org.ucf.ml</groupId>
   	<artifactId>java_abstract</artifactId>
-  	<version>1.0-SNAPSHOT</version>
+  	<version>1.0</version>
   	<name>java_abstract</name>
   	<packaging>jar</packaging>
 

@@ -1,20 +1,10 @@
 package org.ucf.ml
-
-import org.ucf.ml.parser.JavaParser
-import py4j.GatewayServer
-
-import scala.util.Random
+import parser.JavaParser
 
 object GatewayServer extends utils.Common {
-
-  class ServerEntry {
-    def output(data:String) = logger.info(data)
-    def newList(nums:Int) = Seq.fill(nums)(Random.nextInt).toArray
-  }
-
-
   def main(args: Array[String]): Unit = {
-    val server = new GatewayServer(new JavaParser)
+    val server = new py4j.GatewayServer(new JavaParser, 18888)
     server.start()
+    logger.info("Start Py4J Server to recieve python call ...")
   }
 }

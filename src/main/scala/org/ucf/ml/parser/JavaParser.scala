@@ -94,7 +94,7 @@ class JavaParser extends Visitor  {
   def getAbstractCodeFromFileMethod(sourcePath:String, idiomPath:String = "idioms/idioms.csv") =
     getAbstractCode(sourcePath, idiomPath, METHOD, true)
 
-  def getAbstractCodeFromFileString(sourcePath:String, idiomPath:String = "idioms/idioms.csv") =
+  def getAbstractCodeFromFileSClass(sourcePath:String, idiomPath:String = "idioms/idioms.csv") =
     getAbstractCode(sourcePath, idiomPath, CLASS, true)
 
 

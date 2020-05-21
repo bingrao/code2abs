@@ -5,6 +5,11 @@ import org.ucf.ml.utils.{Common, Count}
 import scala.collection.mutable
 import com.github.javaparser.ast.Node
 import scala.collection.mutable.HashMap
+/**
+ *  The Context object is shared by buggy and fixed partially regarding idioms and abstracts
+ * @param idioms
+ * @param granularity
+ */
 class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) extends Common {
 
   /**

@@ -10,13 +10,12 @@ import com.github.javaparser.ast.stmt._
 import com.github.javaparser.ast.body.VariableDeclarator
 import com.github.javaparser.ast.expr._
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter
-
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
 
 trait EnrichedTrees extends utils.Common {
 
-  implicit class getPosition(node:Node) {
+  implicit class genPosition(node:Node) {
     def getPositionalEmbedding(ctx:Context):PositionEmbeddingType = {
       if (ctx.positionalEmbeddingIsContain(node))
         ctx.getPositionalEmbedding(node).get

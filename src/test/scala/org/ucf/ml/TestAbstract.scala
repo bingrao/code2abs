@@ -31,19 +31,19 @@ class TestAbstract extends TestUtils {
   }
 
   @Test def testAbstractFile_68(): Unit ={
-    val input = "data/raw/fixed/1.java"
+    val input = "data/small/raw/fixed/1.java"
     get_abstract_code(input, METHOD, true)
   }
 
   @Test def testAbstractFile(): Unit ={
-    val input = "data/raw/buggy/1.java"
+    val input = "data/small/raw/buggy/1.java"
     get_abstract_code(input, METHOD, true)
   }
 
   @Test def testPairAbstract():Unit = {
     val file_index = 1
-    val buggy = s"data/raw/buggy/${file_index}.java"
-    val fixed = s"data/raw/fixed/${file_index}.java"
+    val buggy = s"data/small/raw/buggy/${file_index}.java"
+    val fixed = s"data/small/raw/fixed/${file_index}.java"
     single_task(buggy, fixed)
   }
 

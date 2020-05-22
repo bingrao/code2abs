@@ -33,11 +33,6 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
     def get_token_poistion = this.token_position
     def append_position(pos:PositionEmbeddingType) = this.token_position.+=(pos)
 
-//    def get_token_abstract_with_position =
-//      (token_abstract.toList zip token_position.toList).map{case (token, pos) => {
-//        s"${token}@[${pos.mkString(",")}]"
-//      }}.mkString(" ")
-
     def get_token_abstract_with_position = {
 
       val length = token_position.toList.map(_.size).max

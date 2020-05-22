@@ -17,8 +17,8 @@ trait TestUtils extends parser.JavaParser with utils.Common {
 
     val cu = getComplationUnit(sourcePath, granularity, isFile)
 
-    printAST(outPath="log/test.Yaml", cu = cu, format = "ymal")
-    printAST(outPath="log/test.dot", cu = cu, format = "dot")
+    printAST(outPath="logs/test.Yaml", cu = cu, format = "ymal")
+    printAST(outPath="logs/test.dot", cu = cu, format = "dot")
 
     /**Traverse AST to generate corresponding node's positional embedding**/
     genPositionEmbedding(ctx, cu)
@@ -67,7 +67,7 @@ trait TestUtils extends parser.JavaParser with utils.Common {
 
     if (logger.isDebugEnabled) {
       logger.debug(f"process ${mode} Source code ${inputPath}")
-      printAST(outPath=f"log/test-${mode}.Yaml", cu = cu, format = "ymal")
+      printAST(outPath=f"logs/test-${mode}.Yaml", cu = cu, format = "ymal")
       println(cu)
       println(ctx.get_abstract_code)
       println("******************************************************\n")

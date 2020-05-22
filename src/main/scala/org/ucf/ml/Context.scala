@@ -79,19 +79,19 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
   }
 
 
-  def appendPosition(parent:Node, term:String, index:Int=0, pos:PositionEmbeddingType = null) = {
+  def appendPosition(content:String, index:Int=0, position:PositionEmbeddingType = null, parent:Node=null) = {
 
-    val position = if (pos == null) {
+    val pos = if ((position == null) && (parent != null)) {
       val parant_pos = parent.genPositionalEmbedding(this)
       val pos_size = parent.getChildNodes.size() + nums_wrap_position
       val newIndex = if (index >= 0) index else (pos_size + index)
-      val newNode = new SimpleName().setId(term).setParentNode(parent)
-      val position = List.fill(pos_size)(0.0).updated(newIndex, 1.0) ::: parant_pos
-      this.addPositionalEmbedding(newNode, position)
-      position
-    } else pos
+      val newNode = new SimpleName().setId(content).setParentNode(parent)
+      val newposition = List.fill(pos_size)(0.0).updated(newIndex, 1.0) ::: parant_pos
+      this.addPositionalEmbedding(newNode, newposition)
+      newposition
+    } else position
 
-    this.append(content = term, position = position)
+    this.append(content = content, position = pos)
   }
 
 

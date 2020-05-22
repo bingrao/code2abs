@@ -10,26 +10,12 @@ import com.github.javaparser.ast.stmt._
 import com.github.javaparser.ast.body.VariableDeclarator
 import com.github.javaparser.ast.expr._
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter
+
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
 
 trait EnrichedTrees extends utils.Common {
-
-
-
-  def appendPositionalEmbedding(ctx:Context, parent:Node, term:String, index:Int) = {
-
-    val parant_pos = parent.genPositionalEmbedding(ctx)
-    val pos_size = parent.getChildNodes.size() + nums_wrap_position
-    val newIndex = if (index >=0) index else (pos_size + index)
-    val newNode = new SimpleName().setId(term).setParentNode(parent)
-    val position = List.fill(pos_size)(0.0).updated(newIndex, 1.0) ::: parant_pos
-    ctx.addPositionalEmbedding(newNode, position)
-    ctx.append(content = term, position = position)
-  }
-
-
-
+  
   /**
    *  Get Path between two node in a ast
    * @param src, source node
@@ -101,6 +87,7 @@ trait EnrichedTrees extends utils.Common {
   implicit class genCompilationUnit(node:CompilationUnit) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
 
+
       // 1. package declaration
       val package_decl = node.getPackageDeclaration
       if (package_decl.isPresent) package_decl.get().genCode(ctx, numsIntent)
@@ -119,13 +106,10 @@ trait EnrichedTrees extends utils.Common {
 
   implicit class genPackageDeclaration(node: PackageDeclaration) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
-
-      val pakcage_value = if (ctx.isAbstract) ctx.ident_maps.getNewContent("package") else "package"
-      appendPositionalEmbedding(ctx, node, pakcage_value, 0)
+      ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("package") else "package", parent = node)
 
       node.getName.genCode(ctx)
-
-      appendPositionalEmbedding(ctx, node, ";", -1)
+      ctx.appendPosition(";", parent = node)
       ctx.appendNewLine()
     }
 
@@ -139,22 +123,17 @@ trait EnrichedTrees extends utils.Common {
   implicit class genImportDeclaration(node:ImportDeclaration) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
 
-      val import_value = if (ctx.isAbstract) ctx.ident_maps.getNewContent("import") else "import"
-      appendPositionalEmbedding(ctx, node, import_value, 0)
+      ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("import") else "import", parent = node)
 
-
-      if (node.isStatic) {
-        val static_value = if (ctx.isAbstract) ctx.ident_maps.getNewContent("static") else "static"
-        appendPositionalEmbedding(ctx, node, static_value, 1)
-      }
+      if (node.isStatic) ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("static") else "static", parent = node)
 
       node.getName.genCode(ctx, numsIntent)
 
       if (node.isAsterisk) {
-        appendPositionalEmbedding(ctx, node, ".", -3)
-        appendPositionalEmbedding(ctx, node, "*", -2)
+        ctx.appendPosition(".", parent = node)
+        ctx.appendPosition("*", parent = node)
       }
-      appendPositionalEmbedding(ctx, node, ";", -1)
+      ctx.appendPosition(";", parent = node)
       ctx.appendNewLine()
     }
   }
@@ -184,18 +163,13 @@ trait EnrichedTrees extends utils.Common {
 
       node.getName.genCode(ctx, numsIntent)
 
-      appendPositionalEmbedding(ctx, node, "{", 0)
-
-
+      ctx.appendPosition("{", parent = node)
       val entries = node.getEntries
       entries.foreach(entry => {
         entry.genCode(ctx, numsIntent)
-        if (entry != entries.last) {
-          appendPositionalEmbedding(ctx, node, ",", 0)
-        }
+        if (entry != entries.last) ctx.appendPosition(",", parent = node)
       })
-
-      appendPositionalEmbedding(ctx, node, "}", -1)
+      ctx.appendPosition("}", parent = node)
       ctx.appendNewLine()
     }
   }
@@ -203,7 +177,7 @@ trait EnrichedTrees extends utils.Common {
   implicit class genAnnotationDeclaration(node:AnnotationDeclaration) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       //TODO, No implementation about annotation
-      ctx.append(node.toString, numsIntent)
+      ctx.appendPosition(node.toString, numsIntent, parent = node)
     }
   }
 
@@ -215,34 +189,29 @@ trait EnrichedTrees extends utils.Common {
         val modifiers = node.getModifiers
         modifiers.foreach(_.genCode(ctx, numsIntent))
 
-        if (node.isInterface) {
-          val value = if (ctx.isAbstract) ctx.ident_maps.getNewContent("interface") else "interface"
-          appendPositionalEmbedding(ctx, node, value, 0)
-        } else {
-          val value = if (ctx.isAbstract) ctx.ident_maps.getNewContent("class") else "class"
-          appendPositionalEmbedding(ctx, node, value, 0)
-        }
+        if (node.isInterface)
+          ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("interface") else "interface", parent = node)
+        else
+          ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("class") else "class", parent = node)
 
         // 2. Interface/Class Name
-        if (ctx.isAbstract) {
-          val value = ctx.type_maps.getNewContent(node.getNameAsString)
-          ctx.append(content = value, position = node.getName.genPositionalEmbedding(ctx))
-        } else
+        if (ctx.isAbstract)
+          ctx.appendPosition(ctx.type_maps.getNewContent(node.getNameAsString), parent = node)
+        else
           node.getName.genCode(ctx, numsIntent)
 
         // 3. type parameters public interface Predicate<T> {}
         val tps = node.getTypeParameters
         tps.foreach(_.genCode(ctx, numsIntent))
 
-        appendPositionalEmbedding(ctx, node, "{", 1)
+        ctx.appendPosition("{", parent = node)
         ctx.appendNewLine()
       }
       // 3. Class Members: Filed and method, constructor
       val members = node.getMembers
       members.foreach(_.genCode(ctx, numsIntent))
 
-      if ((ctx.getGranularity == CLASS) || (!ctx.isAbstract))
-        appendPositionalEmbedding(ctx, node, "}", -1)
+      if ((ctx.getGranularity == CLASS) || (!ctx.isAbstract)) ctx.appendPosition("}", parent = node)
       ctx.appendNewLine()
     }
   }
@@ -264,7 +233,7 @@ trait EnrichedTrees extends utils.Common {
   implicit class genInitializerDeclaration(node:InitializerDeclaration) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       //TODO, no implmentation for learning bugs
-      ctx.append(node.toString(), numsIntent)
+      ctx.appendPosition(node.toString(), numsIntent, parent = node)
     }
   }
 
@@ -278,20 +247,19 @@ trait EnrichedTrees extends utils.Common {
       val varibles = node.getVariables
       varibles.foreach(ele => {
         if (ele == varibles.head) ele.getType.genCode(ctx, numsIntent, node)
-        if (ctx.isAbstract) {
-          val value = ctx.variable_maps.getNewContent(ele.getNameAsString)
-          appendPositionalEmbedding(ctx, node, value, 0)
-        } else
+        if (ctx.isAbstract)
+          ctx.appendPosition(ctx.variable_maps.getNewContent(ele.getNameAsString), parent = node)
+        else
           ele.getName.genCode(ctx, numsIntent, node)
 
         if (ele.getInitializer.isPresent){
-          appendPositionalEmbedding(ctx, node, "=", 1)
+          ctx.appendPosition("=", parent = node)
           ele.getInitializer.get().genCode(ctx, numsIntent, node)
         }
 
-        if (ele != node.getVariables.last) appendPositionalEmbedding(ctx, node, ",", 2)
+        if (ele != node.getVariables.last) ctx.appendPosition(",", parent = node)
       })
-      appendPositionalEmbedding(ctx, node, ";", -1)
+      ctx.appendPosition(";", parent = node)
       ctx.appendNewLine()
     }
   }
@@ -299,14 +267,14 @@ trait EnrichedTrees extends utils.Common {
   implicit class genEnumConstantDeclaration(node:EnumConstantDeclaration) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       //TODO, no implmentation for learning bugs
-      ctx.append(node.toString, numsIntent)
+      ctx.appendPosition(node.toString, numsIntent, parent = node)
     }
   }
 
   implicit class genAnnotationMemberDeclaration(node:AnnotationMemberDeclaration) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       //TODO, no implmentation for learning bugs
-      ctx.append(node.toString, numsIntent)
+      ctx.appendPosition(node.toString, numsIntent, parent = node)
     }
   }
 
@@ -327,28 +295,29 @@ trait EnrichedTrees extends utils.Common {
       node.getTypeParameters.foreach(_.genCode(ctx, numsIntent))
 
       /*Method name, such as hello*/
-      if (ctx.isAbstract) {
-        val value = ctx.method_maps.getNewContent(node.getNameAsString)
-        ctx.append(content = value, position = node.getName.genPositionalEmbedding(ctx))
-      } else
+      if (ctx.isAbstract)
+        ctx.appendPosition(ctx.method_maps.getNewContent(node.getNameAsString), parent = node)
+      else
         node.getName.genCode(ctx)
 
       /*formal paramters*/
-      appendPositionalEmbedding(ctx, node, "(", 0)
+      ctx.appendPosition("(", parent = node)
       val parameters = node.getParameters
       parameters.foreach(p => {
         p.genCode(ctx, numsIntent)
-        if (p != parameters.last) appendPositionalEmbedding(ctx, node, ",", 1)
+        if (p != parameters.last) ctx.appendPosition(",", parent = node)
       })
-      appendPositionalEmbedding(ctx, node, ")", -1)
+      ctx.appendPosition(")", parent = node)
 
       val exceptions = node.getThrownExceptions
       if (exceptions.size() != 0) {
-        val value = if (ctx.isAbstract) ctx.ident_maps.getNewContent("throws") else "throws"
-        appendPositionalEmbedding(ctx, node, value, 2)
+        if (ctx.isAbstract)
+          ctx.appendPosition(ctx.ident_maps.getNewContent("throws"), parent = node)
+        else
+          ctx.appendPosition("throws", parent = node)
         node.getThrownExceptions.foreach(exp => {
           exp.genCode(ctx)
-          if (exp != exceptions.last) appendPositionalEmbedding(ctx, node, ",", 1)
+          if (exp != exceptions.last) ctx.appendPosition(",", parent = node)
         })
       }
       node.getBody.genCode(ctx, numsIntent)
@@ -366,29 +335,30 @@ trait EnrichedTrees extends utils.Common {
       node.getType.genCode(ctx, numsIntent, node.getName)
 
       /*Method name, such as hello*/
-      if (ctx.isAbstract) {
-        val value = ctx.method_maps.getNewContent(node.getNameAsString)
-        ctx.append(content = value, position = node.getName.genPositionalEmbedding(ctx))
-      } else
+      if (ctx.isAbstract)
+        ctx.appendPosition(ctx.method_maps.getNewContent(node.getNameAsString), parent = node)
+      else
         node.getName.genCode(ctx, numsIntent, node.getName)
 
 
       /*formal paramters*/
-      appendPositionalEmbedding(ctx, node, "(", 0)
+      ctx.appendPosition("(", parent = node)
       val parameters = node.getParameters
       parameters.foreach(p => {
         p.genCode(ctx, numsIntent, node.getName)
-        if (p != parameters.last) appendPositionalEmbedding(ctx, node, ",", 1)
+        if (p != parameters.last) ctx.appendPosition(",", parent = node)
       })
-      appendPositionalEmbedding(ctx, node, ")", 2)
+      ctx.appendPosition(")", parent = node)
 
       val exceptions = node.getThrownExceptions
       if (exceptions.size() != 0) {
-        val value = if (ctx.isAbstract) ctx.ident_maps.getNewContent("throws") else "throws"
-        appendPositionalEmbedding(ctx, node, value, 1)
+        if (ctx.isAbstract)
+          ctx.appendPosition(ctx.ident_maps.getNewContent("throws"), parent = node)
+        else
+          ctx.appendPosition("throws", parent = node)
         node.getThrownExceptions.foreach(exp => {
           exp.genCode(ctx, numsIntent, node.getName)
-          if (exp != exceptions.last) appendPositionalEmbedding(ctx, node, ",", 1)
+          if (exp != exceptions.last) ctx.appendPosition(",", parent = node)
         })
       }
       /*Method Body*/
@@ -434,16 +404,13 @@ trait EnrichedTrees extends utils.Common {
       val integral = node.getIterable
       val variable = node.getVariable
       val body = node.getBody
-      val value = if (ctx.isAbstract) ctx.ident_maps.getNewContent("for") else "for"
-      appendPositionalEmbedding(ctx, node, value, 0)
 
-      appendPositionalEmbedding(ctx, node, "(", 1)
+      ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("for") else "for", parent = node)
+      ctx.appendPosition("(", parent = node)
       variable.genCode(ctx, numsIntent, node)
-
-      appendPositionalEmbedding(ctx, node, ":", 2)
+      ctx.appendPosition(":", parent = node)
       integral.genCode(ctx, numsIntent, node)
-
-      appendPositionalEmbedding(ctx, node, ")", -1)
+      ctx.appendPosition(")", parent = node)
       body.genCode(ctx, numsIntent, node)
     }
   }
@@ -458,14 +425,10 @@ trait EnrichedTrees extends utils.Common {
   implicit class genContinueStmt(node:ContinueStmt) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       if (tgt != null) logger.debug(f"continue" + getUpArrow + getPath(node, tgt))
-
-      val value = if (ctx.isAbstract) ctx.ident_maps.getNewContent("continue") else "continue"
-      appendPositionalEmbedding(ctx, node, value, 0)
-
       val label =  node.getLabel
+      ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("continue") else "continue", parent = node)
       if (label.isPresent) label.get().genCode(ctx, numsIntent, node)
-
-      appendPositionalEmbedding(ctx, node, ";", -1)
+      ctx.appendPosition(";", parent = node)
       ctx.appendNewLine()
     }
 
@@ -476,7 +439,7 @@ trait EnrichedTrees extends utils.Common {
       if (tgt != null) logger.debug(f"[${node.toString}]" + getUpArrow + getPath(node, tgt) + getDownArrow + s"<${tgt.toString()}>")
       node.getExpression.genCode(ctx, numsIntent, node)
       if (!node.getParentNode.get().isInstanceOf[Expression]) {
-        appendPositionalEmbedding(ctx, node, ";", -1)
+        ctx.appendPosition(";", parent = node)
         ctx.appendNewLine()
       }
     }
@@ -489,12 +452,10 @@ trait EnrichedTrees extends utils.Common {
       val sts = node.getStatement
 
       label.genCode(ctx, numsIntent, node)
-
-      appendPositionalEmbedding(ctx, node, ":", 0)
-
+      ctx.appendPosition(":", parent = node)
       sts.genCode(ctx, numsIntent, node)
 
-      appendPositionalEmbedding(ctx, node, ";", -1)
+      ctx.appendPosition(";", parent = node)
       ctx.appendNewLine()
 
     }
@@ -503,13 +464,9 @@ trait EnrichedTrees extends utils.Common {
   implicit class genYieldStmt(node:YieldStmt) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       if (tgt != null) logger.debug(f"yield" + getUpArrow + getPath(node, tgt))
-
-      val value =if (ctx.isAbstract) ctx.ident_maps.getNewContent("yield") else "yield"
-      appendPositionalEmbedding(ctx, node, value, 0)
-
+      ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("yield") else "yield", parent = node)
       node.getExpression.genCode(ctx, numsIntent, node)
-
-      appendPositionalEmbedding(ctx, node, ";", -1)
+      ctx.appendPosition(";", parent = node)
       ctx.appendNewLine()
     }
   }
@@ -517,13 +474,10 @@ trait EnrichedTrees extends utils.Common {
   implicit class genReturnStmt(node:ReturnStmt) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       if (tgt != null) logger.debug(f"return" + getUpArrow + getPath(node, tgt))
-      val value = if (ctx.isAbstract) ctx.ident_maps.getNewContent("return") else "return"
-      appendPositionalEmbedding(ctx, node, value, 0)
-
+      ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("return") else "return", parent = node)
       val expr = node.getExpression
       if (expr.isPresent) expr.get().genCode(ctx, numsIntent, node)
-
-      appendPositionalEmbedding(ctx, node, ";", -1)
+      ctx.appendPosition(";", parent = node)
       ctx.appendNewLine()
     }
   }
@@ -533,17 +487,11 @@ trait EnrichedTrees extends utils.Common {
       if (tgt != null) logger.debug(f"while" + getUpArrow + getPath(node, tgt))
       val body = node.getBody
       val condition = node.getCondition
-      val value = if (ctx.isAbstract) ctx.ident_maps.getNewContent("while") else "while"
-      appendPositionalEmbedding(ctx, node, value, 0)
-
-
-      appendPositionalEmbedding(ctx, node, "(", 0)
-
+      ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("while") else "while", parent = node)
+      ctx.appendPosition("(", parent = node)
       condition.genCode(ctx, numsIntent, node)
-
-      appendPositionalEmbedding(ctx, node, ")", 0)
+      ctx.appendPosition(")", parent = node)
       ctx.appendNewLine()
-
       body.genCode(ctx, numsIntent, node)
     }
   }
@@ -551,7 +499,7 @@ trait EnrichedTrees extends utils.Common {
   implicit class genEmptyStmt(node:EmptyStmt) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       if (tgt != null) logger.debug(f"empty" + getUpArrow + getPath(node, tgt))
-      appendPositionalEmbedding(ctx, node, ";", -1)
+      ctx.appendPosition(";", parent = node)
       ctx.appendNewLine()
     }
   }
@@ -559,7 +507,7 @@ trait EnrichedTrees extends utils.Common {
   implicit class genUnparsableStmt(node:UnparsableStmt) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       //TODO, not for this project
-      ctx.append(node.toString, numsIntent)
+      ctx.appendPosition(node.toString, numsIntent)
     }
   }
 
@@ -570,19 +518,16 @@ trait EnrichedTrees extends utils.Common {
       val thenStmt = node.getThenStmt
       val elseStmt = node.getElseStmt
 
-      val value = if (ctx.isAbstract) ctx.ident_maps.getNewContent("if") else "if"
-      appendPositionalEmbedding(ctx, node, value, 0)
-
-      appendPositionalEmbedding(ctx, node, "(", 0)
+      ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("if") else "if", parent = node)
+      ctx.appendPosition("(", parent = node)
       condition.genCode(ctx, numsIntent, node)
-      appendPositionalEmbedding(ctx, node, ")", 0)
+      ctx.appendPosition(")", parent = node)
 
       ctx.appendNewLine()
       thenStmt.genCode(ctx, numsIntent, node)
 
       if (elseStmt.isPresent){
-        val value = if (ctx.isAbstract) ctx.ident_maps.getNewContent("else") else "else"
-        appendPositionalEmbedding(ctx, node, value, 0)
+        ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("else") else "else", parent = node)
         ctx.appendNewLine()
         elseStmt.get().genCode(ctx, numsIntent, node)
       }
@@ -593,11 +538,10 @@ trait EnrichedTrees extends utils.Common {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       if (tgt != null) logger.debug(f"break" + getUpArrow + getPath(node, tgt))
       val label = node.getLabel
-      val value =if (ctx.isAbstract) ctx.ident_maps.getNewContent("break") else "break"
-      appendPositionalEmbedding(ctx, node, value, 0)
+      ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("break") else "break", parent = node)
       if (label.isPresent) label.get().genCode(ctx, numsIntent, node)
 
-      appendPositionalEmbedding(ctx, node, ";", -1)
+      ctx.appendPosition(";", parent = node)
       ctx.appendNewLine()
     }
   }
@@ -608,16 +552,15 @@ trait EnrichedTrees extends utils.Common {
       val check = node.getCheck
       val msg = node.getMessage
 
-      val value = if (ctx.isAbstract) ctx.ident_maps.getNewContent("assert") else "assert"
-      appendPositionalEmbedding(ctx, node, value, 0)
+      ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("assert") else "assert", parent = node)
       check.genCode(ctx, numsIntent, node)
 
       if (msg.isPresent) {
-        appendPositionalEmbedding(ctx, node, ":", 0)
+        ctx.appendPosition(":", parent = node)
         msg.get().genCode(ctx, numsIntent, node)
       }
 
-      appendPositionalEmbedding(ctx, node, ";", -1)
+      ctx.appendPosition(";", parent = node)
       ctx.appendNewLine()
     }
   }
@@ -625,7 +568,7 @@ trait EnrichedTrees extends utils.Common {
   implicit class genExplicitConstructorInvocationStmt(node:ExplicitConstructorInvocationStmt) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       //TODO, not for this project
-      ctx.append(node.toString, numsIntent)
+      ctx.appendPosition(node.toString, numsIntent, parent = node)
     }
   }
 
@@ -636,13 +579,12 @@ trait EnrichedTrees extends utils.Common {
       val condition = node.getCondition
 
       body.genCode(ctx, numsIntent, node)
-      val value = if (ctx.isAbstract) ctx.ident_maps.getNewContent("while") else "while"
-      appendPositionalEmbedding(ctx, node, value, 0)
-      appendPositionalEmbedding(ctx, node, "(", 0)
+      ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("while") else "while", parent = node)
+      ctx.appendPosition("(", parent = node)
       condition.genCode(ctx, numsIntent, node)
-      appendPositionalEmbedding(ctx, node, ")", 0)
+      ctx.appendPosition(")", parent = node)
 
-      appendPositionalEmbedding(ctx, node, ";", -1)
+      ctx.appendPosition(";", parent = node)
       ctx.appendNewLine()
     }
   }
@@ -650,27 +592,26 @@ trait EnrichedTrees extends utils.Common {
   implicit class genForStmt(node:ForStmt) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       if (tgt != null) logger.debug(f"for" + getUpArrow + getPath(node, tgt))
-      val value = if (ctx.isAbstract) ctx.ident_maps.getNewContent("for") else "for"
-      appendPositionalEmbedding(ctx, node, value, 0)
-      appendPositionalEmbedding(ctx, node, "(", 0)
+      ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("for") else "for", parent = node)
+      ctx.appendPosition("(", parent = node)
       val initial = node.getInitialization
       initial.foreach(init => {
         init.genCode(ctx, numsIntent, node)
-        if (init != initial.last) appendPositionalEmbedding(ctx, node, ",", 0)
+        if (init != initial.last) ctx.appendPosition(",", parent = node)
       })
-      appendPositionalEmbedding(ctx, node, ";", 0)
+      ctx.appendPosition(";", parent = node)
 
       val compare = node.getCompare
       if (compare.isPresent) compare.get().genCode(ctx, numsIntent, node)
 
-      appendPositionalEmbedding(ctx, node, ";", 0)
+      ctx.appendPosition(";", parent = node)
 
       val update = node.getUpdate
       update.foreach(up => {
         up.genCode(ctx, numsIntent, node)
-        if (up != update.last) appendPositionalEmbedding(ctx, node, ",", 0)
+        if (up != update.last) ctx.appendPosition(",", parent = node)
       })
-      appendPositionalEmbedding(ctx, node, ")", 0)
+      ctx.appendPosition(")", parent = node)
 
       val body = node.getBody
       body.genCode(ctx, numsIntent, node)
@@ -680,10 +621,8 @@ trait EnrichedTrees extends utils.Common {
   implicit class genThrowStmt(node:ThrowStmt) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       if (tgt != null) logger.debug(f"throw" + getUpArrow + getPath(node, tgt))
-      val value_throw = if (ctx.isAbstract) ctx.ident_maps.getNewContent("throw") else "throw"
-      appendPositionalEmbedding(ctx, node, value_throw, 0)
-      val value_new = if (ctx.isAbstract) ctx.ident_maps.getNewContent("new") else "new"
-      appendPositionalEmbedding(ctx, node, value_new, 0)
+      ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("throw") else "throw", parent = node)
+      ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("new") else "new", parent = node)
       node.getExpression.genCode(ctx, numsIntent, node)
       ctx.appendNewLine()
     }
@@ -698,15 +637,14 @@ trait EnrichedTrees extends utils.Common {
       val tryFinally = node.getFinallyBlock
       val tryBlock = node.getTryBlock
 
-      val value = if (ctx.isAbstract) ctx.ident_maps.getNewContent("try") else "try"
-      appendPositionalEmbedding(ctx, node, value, 0)
+      ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("try") else "try", parent = node)
       if (tryResources.size() != 0){
-        appendPositionalEmbedding(ctx, node, "(", 0)
+        ctx.appendPosition("(", parent = node)
         tryResources.foreach(expr => {
           expr.genCode(ctx, numsIntent, node)
-          if (expr != tryResources.last) appendPositionalEmbedding(ctx, node, ",", 0)
+          if (expr != tryResources.last) ctx.appendPosition(",", parent = node)
         })
-        appendPositionalEmbedding(ctx, node, ")", 0)
+        ctx.appendPosition(")", parent = node)
       }
 
       tryBlock.genCode(ctx, numsIntent, node)
@@ -721,11 +659,10 @@ trait EnrichedTrees extends utils.Common {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       val parameter = node.getParameter
       val body = node.getBody
-      val value = if (ctx.isAbstract) ctx.ident_maps.getNewContent("catch") else "catch"
-      appendPositionalEmbedding(ctx, node, value, 0)
-      appendPositionalEmbedding(ctx, node, "(", 0)
+      ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("catch") else "catch", parent = node)
+      ctx.appendPosition("(", parent = node)
       parameter.genCode(ctx, numsIntent)
-      appendPositionalEmbedding(ctx, node, ")", 0)
+      ctx.appendPosition(")", parent = node)
       body.genCode(ctx)
       ctx.appendNewLine()
     }
@@ -737,19 +674,16 @@ trait EnrichedTrees extends utils.Common {
       if (tgt != null) logger.debug(f"switch" + getUpArrow + getPath(node, tgt))
       val entries = node.getEntries
       val selector = node.getSelector
-      val value = if (ctx.isAbstract) ctx.ident_maps.getNewContent("switch") else "switch"
-      appendPositionalEmbedding(ctx, node, value, 0)
+      ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("switch") else "switch", parent = node)
 
-      appendPositionalEmbedding(ctx, node, "(", 0)
+      ctx.appendPosition("(", parent = node)
       selector.genCode(ctx, numsIntent, node)
-      appendPositionalEmbedding(ctx, node, ")", 0)
+      ctx.appendPosition(")", parent = node)
       ctx.appendNewLine()
 
-      appendPositionalEmbedding(ctx, node, "{", 0)
-
+      ctx.appendPosition("{", parent = node)
       entries.foreach(_.genCode(ctx, numsIntent, node))
-
-      appendPositionalEmbedding(ctx, node, "}", 0)
+      ctx.appendPosition("}", parent = node)
       ctx.appendNewLine()
     }
   }
@@ -757,12 +691,10 @@ trait EnrichedTrees extends utils.Common {
   implicit class genSynchronizedStmt(node:SynchronizedStmt) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
       if (tgt != null) logger.debug(f"synchronized" + getUpArrow + getPath(node, tgt))
-      val value = if (ctx.isAbstract) ctx.ident_maps.getNewContent("synchronized") else "synchronized"
-      appendPositionalEmbedding(ctx, node, value, 0)
-
-      appendPositionalEmbedding(ctx, node, "(", 0)
+      ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("synchronized") else "synchronized", parent = node)
+      ctx.appendPosition("(", parent = node)
       node.getExpression.genCode(ctx, numsIntent, node)
-      appendPositionalEmbedding(ctx, node, ")", 0)
+      ctx.appendPosition(")", parent = node)
       node.getBody.genCode(ctx, numsIntent, node)
     }
   }
@@ -770,11 +702,10 @@ trait EnrichedTrees extends utils.Common {
   implicit class genBlockStmt(node:BlockStmt) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit  = {
 
-      appendPositionalEmbedding(ctx, node, "{", 0)
+      ctx.appendPosition("{", parent = node)
       ctx.appendNewLine()
       node.getStatements.foreach(sts => sts.genCode(ctx, numsIntent, tgt))
-
-      appendPositionalEmbedding(ctx, node, "}", 0)
+      ctx.appendPosition("}", parent = node)
       ctx.appendNewLine()
     }
   }
@@ -818,9 +749,9 @@ trait EnrichedTrees extends utils.Common {
       val name = node.getName
       val index = node.getIndex
       name.genCode(ctx, numsIntent)
-      appendPositionalEmbedding(ctx, node, "[", 0)
+      ctx.appendPosition("[", parent = node)
       index.genCode(ctx, numsIntent)
-      appendPositionalEmbedding(ctx, node, "]", 0)
+      ctx.appendPosition("]", parent = node)
     }
   }
 
@@ -828,9 +759,8 @@ trait EnrichedTrees extends utils.Common {
   implicit class genClassExpr(node:ClassExpr) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit= {
 
-      val value = if (ctx.isAbstract) ctx.ident_maps.getNewContent("Object") else "Object"
-      appendPositionalEmbedding(ctx, node, value, 0)
-      appendPositionalEmbedding(ctx, node, ".", 0)
+      ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("Object") else "Object", parent = node)
+      ctx.appendPosition(".", parent = node)
       node.getType.genCode(ctx)
       ctx.appendNewLine()
     }
@@ -843,17 +773,17 @@ trait EnrichedTrees extends utils.Common {
       val parameters = node.getParameters
 
       if (parameters.size > 1)
-        appendPositionalEmbedding(ctx, node, "(", 0)
+        ctx.appendPosition("(", parent = node)
 
       parameters.foreach(p => {
         p.genCode(ctx, numsIntent)
-        if (p != parameters.last) appendPositionalEmbedding(ctx, node, ",", 0)
+        if (p != parameters.last) ctx.appendPosition(",", parent = node)
       })
 
       if (parameters.size > 1)
-        appendPositionalEmbedding(ctx, node, ")", 0)
+        ctx.appendPosition(")", parent = node)
 
-      appendPositionalEmbedding(ctx, node, "->", 0)
+      ctx.appendPosition("->", parent = node)
 
       val body = node.getBody
 
@@ -870,14 +800,13 @@ trait EnrichedTrees extends utils.Common {
       val initial = node.getInitializer
       val levels = node.getLevels
 
-      val value = if (ctx.isAbstract) ctx.ident_maps.getNewContent("new") else "new"
-      appendPositionalEmbedding(ctx, node, value, 0)
+      ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("new") else "new", parent = node)
       eleType.genCode(ctx, numsIntent)
       for (level <- levels){
-        appendPositionalEmbedding(ctx, node, "[", 0)
+        ctx.appendPosition("[", parent = node)
         val dim = level.getDimension
         if (dim.isPresent) dim.get().genCode(ctx, numsIntent)
-        appendPositionalEmbedding(ctx, node, "]", 0)
+        ctx.appendPosition("]", parent = node)
       }
 
       if (initial.isPresent) initial.get().genCode(ctx, numsIntent)
@@ -891,9 +820,9 @@ trait EnrichedTrees extends utils.Common {
       val elseExpr = node.getElseExpr
 
       condition.genCode(ctx, numsIntent)
-      appendPositionalEmbedding(ctx, node, "?", 0)
+      ctx.appendPosition("?", parent = node)
       thenExpr.genCode(ctx, numsIntent)
-      appendPositionalEmbedding(ctx, node, ":", 0)
+      ctx.appendPosition(":", parent = node)
       elseExpr.genCode(ctx, numsIntent)
     }
   }
@@ -910,31 +839,31 @@ trait EnrichedTrees extends utils.Common {
         } else {
           if (ctx.isAbstract) {
             val scope_value = ctx.variable_maps.getNewContent(scope.get().toString)
-            ctx.append(content = scope_value, position = scope.get().genPositionalEmbedding(ctx))
+            ctx.appendPosition(scope_value, parent = node)
           } else
             scope.get().genCode(ctx, numsIntent)
         }
-        appendPositionalEmbedding(ctx, node, ".", 0)
+        ctx.appendPosition(".", parent = node)
       }
 
       if (ctx.isAbstract) {
         val funcName = ctx.method_maps.getNewContent(node.getName.asString())
-        ctx.append(content = funcName, position = node.getName.genPositionalEmbedding(ctx))
+        ctx.appendPosition(funcName, parent = node)
       } else node.getName.genCode(ctx)
 
-      appendPositionalEmbedding(ctx, node, "(", 0)
+      ctx.appendPosition("(", parent = node)
       arguments.foreach(expr => {
         expr.genCode(ctx, numsIntent)
-        if (expr != arguments.last) appendPositionalEmbedding(ctx, node, ",", 0)
+        if (expr != arguments.last) ctx.appendPosition(",", parent = node)
       })
-      appendPositionalEmbedding(ctx, node, ")", 0)
+      ctx.appendPosition(")", parent = node)
     }
   }
 
   implicit class genAnnotationExpr(node:AnnotationExpr) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       //TODO, not for this projects
-      ctx.append(node.toString)
+      ctx.appendPosition(node.toString, parent = node)
     }
   }
 
@@ -946,8 +875,7 @@ trait EnrichedTrees extends utils.Common {
 
       left.genCode(ctx, numsIntent)
 
-      val value = op.asString()
-      appendPositionalEmbedding(ctx, node, value, 0)
+      ctx.appendPosition(op.asString(), parent = node)
 
       right.genCode(ctx, numsIntent)
 
@@ -958,25 +886,21 @@ trait EnrichedTrees extends utils.Common {
   implicit class genInstanceOfExpr(node:InstanceOfExpr) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       node.getExpression.genCode(ctx)
-      val value = if (ctx.isAbstract) ctx.ident_maps.getNewContent("instanceof") else "instanceof"
-      appendPositionalEmbedding(ctx, node, value, 0)
+      ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("instanceof") else "instanceof", parent = node)
       node.getType.genCode(ctx)
     }
   }
 
   implicit class genThisExpr(node:ThisExpr) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
-      val value = if (ctx.isAbstract) ctx.ident_maps.getNewContent("this") else "this"
-      appendPositionalEmbedding(ctx, node, value, 0)
+      ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("this") else "this", parent = node)
     }
   }
 
   implicit class genNameExpr(node:NameExpr) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       if (ctx.isAbstract) {
-        val value = ctx.variable_maps.getNewContent(node.getName.asString())
-        ctx.append(content = value, position = node.getName.genPositionalEmbedding(ctx))
-
+        ctx.appendPosition(ctx.variable_maps.getNewContent(node.getName.asString()), parent = node)
       } else node.getName.genCode(ctx, numsIntent, tgt)
 
     }
@@ -985,12 +909,12 @@ trait EnrichedTrees extends utils.Common {
   implicit class genCastExpr(node:CastExpr) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       //TODO no implement for this project
-      appendPositionalEmbedding(ctx, node, "(", 0)
+      ctx.appendPosition("(", parent = node)
       node.getType.genCode(ctx)
-      appendPositionalEmbedding(ctx, node, ")", 0)
-      appendPositionalEmbedding(ctx, node, "(", 0)
+      ctx.appendPosition(")", parent = node)
+      ctx.appendPosition("(", parent = node)
       node.getExpression.genCode(ctx)
-      appendPositionalEmbedding(ctx, node, ")", 0)
+      ctx.appendPosition(")", parent = node)
     }
   }
 
@@ -1002,24 +926,21 @@ trait EnrichedTrees extends utils.Common {
         scope.genCode(ctx, numsIntent)
       } else {
         if (ctx.isAbstract)
-          ctx.append(content = ctx.ident_maps.getNewContent(scope.toString),
-            position = scope.genPositionalEmbedding(ctx))
-
+          ctx.appendPosition(ctx.ident_maps.getNewContent(scope.toString), parent = node)
         else
           scope.genCode(ctx, numsIntent)
       }
-      appendPositionalEmbedding(ctx, node, "::", 0)
+      ctx.appendPosition("::", parent = node)
 
-      val value = if (ctx.isAbstract) ctx.method_maps.getNewContent(ident) else ident
-      appendPositionalEmbedding(ctx, node, value, 0)
+      if (ctx.isAbstract) ctx.appendPosition(ctx.method_maps.getNewContent(ident), parent = node) else ctx.appendPosition(ident, parent = node)
     }
   }
 
   implicit class genEnclosedExpr(node:EnclosedExpr) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit= {
-      appendPositionalEmbedding(ctx, node, "(", 0)
+      ctx.appendPosition("(", parent = node)
       node.getInner.genCode(ctx)
-      appendPositionalEmbedding(ctx, node, ")", 0)
+      ctx.appendPosition(")", parent = node)
     }
   }
 
@@ -1033,18 +954,15 @@ trait EnrichedTrees extends utils.Common {
 
   implicit class genSwitchExpr(node:SwitchExpr) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
-      val value = if (ctx.isAbstract) ctx.ident_maps.getNewContent("switch") else "switch"
-      appendPositionalEmbedding(ctx, node, value, 0)
-
-      appendPositionalEmbedding(ctx, node, "(", 0)
+      ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("switch") else "switch", parent = node)
+      ctx.appendPosition("(", parent = node)
       node.getSelector.genCode(ctx)
-      appendPositionalEmbedding(ctx, node, ")", 0)
-
-      appendPositionalEmbedding(ctx, node, "{", 0)
+      ctx.appendPosition(")", parent = node)
+      ctx.appendPosition("{", parent = node)
 
       node.getEntries.foreach(_.genCode(ctx))
 
-      appendPositionalEmbedding(ctx, node, "}", 0)
+      ctx.appendPosition("}", parent = node)
       ctx.appendNewLine()
     }
   }
@@ -1055,18 +973,18 @@ trait EnrichedTrees extends utils.Common {
       val lables = node.getLabels
       val sts = node.getStatements
 
-      val value = if (ctx.isAbstract) ctx.ident_maps.getNewContent("case") else "case"
-      appendPositionalEmbedding(ctx, node, value, 0)
+      ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("case") else "case", parent = node)
+
       lables.foreach(expr => {
         expr.genCode(ctx)
-        if (expr != lables.last) appendPositionalEmbedding(ctx, node, ",", 0)
+        if (expr != lables.last) ctx.appendPosition(",", parent = node)
       })
 
-      appendPositionalEmbedding(ctx, node, "->", 0)
+      ctx.appendPosition("->", parent = node)
 
-      appendPositionalEmbedding(ctx, node, "{", 0)
+      ctx.appendPosition("{", parent = node)
       sts.foreach(_.genCode(ctx))
-      appendPositionalEmbedding(ctx, node, "}", 0)
+      ctx.appendPosition("}", parent = node)
 
     }
   }
@@ -1075,8 +993,8 @@ trait EnrichedTrees extends utils.Common {
   implicit class genLiteralExpr(node:LiteralExpr) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       node match {
-        case expr:NullLiteralExpr => ctx.append(expr.toString)
-        case expr:BooleanLiteralExpr => ctx.append(expr.getValue.toString)
+        case expr:NullLiteralExpr => ctx.appendPosition(expr.toString, parent = node)
+        case expr:BooleanLiteralExpr => ctx.appendPosition(expr.getValue.toString, parent = node)
         case expr:LiteralStringValueExpr  => expr.genCode(ctx, numsIntent)
       }
     }
@@ -1098,42 +1016,42 @@ trait EnrichedTrees extends utils.Common {
   implicit class genTextBlockLiteralExpr(node:TextBlockLiteralExpr) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       val value = if (ctx.isAbstract) ctx.textBlock_maps.getNewContent(node.getValue) else node.asString()
-      ctx.append(value)
+      ctx.appendPosition(value, parent = node)
     }
   }
 
   implicit class genCharLiteralExpr(node:CharLiteralExpr) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       val value = if (ctx.isAbstract) ctx.char_maps.getNewContent(node.getValue) else node.asChar().toString
-      ctx.append(value)
+      ctx.appendPosition(value, parent = node)
     }
   }
 
   implicit class genDoubleLiteralExpr(node:DoubleLiteralExpr) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       val value = if (ctx.isAbstract)  ctx.double_maps.getNewContent(node.getValue) else node.asDouble().toString
-      ctx.append(value)
+      ctx.appendPosition(value, parent = node)
     }
   }
 
   implicit class genLongLiteralExpr(node:LongLiteralExpr) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       val value = if (ctx.isAbstract)  ctx.long_maps.getNewContent(node.getValue) else node.asNumber().toString
-      ctx.append(value)
+      ctx.appendPosition(value, parent = node)
     }
   }
 
   implicit class genStringLiteralExpr(node:StringLiteralExpr) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       val value = if (ctx.isAbstract)  ctx.string_maps.getNewContent(node.getValue) else node.asString()
-      ctx.append("\"" + value + "\"")
+      ctx.appendPosition(value, parent = node)
     }
   }
 
   implicit class genIntegerLiteralExpr(node:IntegerLiteralExpr) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       val value = if (ctx.isAbstract)  ctx.int_maps.getNewContent(node.getValue) else node.asNumber().toString
-      ctx.append(value)
+      ctx.appendPosition(value, parent = node)
     }
   }
 
@@ -1154,23 +1072,23 @@ trait EnrichedTrees extends utils.Common {
           scope.get().genCode(ctx, numsIntent)
         } else {
           if (ctx.isAbstract)
-            ctx.append(ctx.ident_maps.getNewContent(scope.toString))
+            ctx.appendPosition(ctx.ident_maps.getNewContent(scope.toString), parent = node)
           else
             scope.get().genCode(ctx, numsIntent)
         }
-        ctx.append(".")
+        ctx.appendPosition(".", parent = node)
       }
 
-      ctx.append(if (ctx.isAbstract) ctx.ident_maps.getNewContent("new") else "new")
+      ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("new") else "new", parent = node)
 
       tp.genCode(ctx, numsIntent)
 
-      appendPositionalEmbedding(ctx, node, "(", 0)
+      ctx.appendPosition("(", parent = node)
       arguments.foreach(expr =>{
         expr.genCode(ctx, numsIntent)
-        if (expr != arguments.last) appendPositionalEmbedding(ctx, node, ",", 0)
+        if (expr != arguments.last) ctx.appendPosition(",", parent = node)
       })
-      appendPositionalEmbedding(ctx, node, ")", 0)
+      ctx.appendPosition(")", parent = node)
     }
   }
 
@@ -1182,10 +1100,9 @@ trait EnrichedTrees extends utils.Common {
 
       if (tpName.isPresent){
         tpName.get().genCode(ctx)
-        ctx.append(".")
+        ctx.appendPosition(".", parent = node)
       }
-      val value = if (ctx.isAbstract) ctx.ident_maps.getNewContent("super") else "super"
-      appendPositionalEmbedding(ctx, node, value, 0)
+      ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("super") else "super", parent = node)
     }
   }
 
@@ -1195,10 +1112,10 @@ trait EnrichedTrees extends utils.Common {
       val expr = node.getExpression
       if (node.isPostfix) {
         expr.genCode(ctx, numsIntent)
-        ctx.append(op)
+        ctx.appendPosition(op, parent = node)
       }
       if (node.isPrefix) {
-        ctx.append(op)
+        ctx.appendPosition(op, parent = node)
         expr.genCode(ctx, numsIntent)
       }
     }
@@ -1211,7 +1128,7 @@ trait EnrichedTrees extends utils.Common {
       val right = node.getRight
       left.genCode(ctx, numsIntent, tgt)
       // TODO op need path
-      appendPositionalEmbedding(ctx, node, op, 0)
+      ctx.appendPosition(op, parent = node)
       right.genCode(ctx, numsIntent, tgt)
     }
   }
@@ -1224,16 +1141,16 @@ trait EnrichedTrees extends utils.Common {
       } else {
         if (ctx.isAbstract) {
           val scope_value = ctx.variable_maps.getNewContent(node.getScope.toString)
-          ctx.append(content = scope_value, position = node.getScope.genPositionalEmbedding(ctx))
+          ctx.appendPosition(scope_value, parent = node)
         } else
           node.getScope.genCode(ctx, numsIntent)
       }
-      appendPositionalEmbedding(ctx, node, ".", 0)
+      ctx.appendPosition(".", parent = node)
 
       // filed
       if (ctx.isAbstract) {
         val name = ctx.ident_maps.getNewContent(node.getName.asString())
-        ctx.append(content = name, position = node.getName.genPositionalEmbedding(ctx))
+        ctx.appendPosition(name, parent = node)
       } else
         node.getName.genCode(ctx)
     }
@@ -1248,12 +1165,12 @@ trait EnrichedTrees extends utils.Common {
   implicit class genArrayInitializerExpr(node:ArrayInitializerExpr) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       val values = node.getValues
-      appendPositionalEmbedding(ctx, node, "{", 0)
+      ctx.appendPosition("{", parent = node)
       values.foreach(ele => {
         ele.genCode(ctx, numsIntent)
-        if (ele != values.last) appendPositionalEmbedding(ctx, node, ",", 0)
+        if (ele != values.last) ctx.appendPosition(",", parent = node)
       })
-      appendPositionalEmbedding(ctx, node, "}", 0)
+      ctx.appendPosition("}", parent = node)
     }
   }
 
@@ -1268,12 +1185,12 @@ trait EnrichedTrees extends utils.Common {
 
       if (ctx.isAbstract) {
         val value =  ctx.variable_maps.getNewContent(name.asString())
-        ctx.append(content = value, position = name.genPositionalEmbedding(ctx))
+        ctx.appendPosition(value, parent = node)
       } else name.genCode(ctx, numsIntent, tgt)
 
 
       if (init.isPresent){
-        appendPositionalEmbedding(ctx, node, "=", 0)
+        ctx.appendPosition("=", parent = node)
         init.get().genCode(ctx, numsIntent, tgt)
       }
     }
@@ -1287,16 +1204,14 @@ trait EnrichedTrees extends utils.Common {
 
   implicit class genSimpleName(node:SimpleName) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
-      ctx.append(content = node.getIdentifier, position = node.genPositionalEmbedding(ctx))
+      ctx.appendPosition(node.getIdentifier, parent = node)
       if (tgt != null) logger.debug(f"[${node.getIdentifier}]" + getUpArrow + getPath(node, tgt) + getDownArrow + s"<${tgt.toString()}>")
     }
   }
 
   implicit class genModifier(node: Modifier) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
-
-      ctx.append(content = node.getKeyword.asString(), position = node.genPositionalEmbedding(ctx))
-
+      ctx.appendPosition(node.getKeyword.asString(), parent = node)
       if (tgt != null) logger.debug(f"[${node.getKeyword.asString()}]"
         + getUpArrow + getPath(node, tgt) + getDownArrow + s"<${tgt.toString}>")
     }
@@ -1306,39 +1221,32 @@ trait EnrichedTrees extends utils.Common {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = if (!node.asString().isEmpty){
       node match {
         case tp:UnionType  =>{
-          val value = if (ctx.isAbstract) ctx.type_maps.getNewContent(node.asString()) else node.asString()
-          ctx.append(content = value, position = node.genPositionalEmbedding(ctx))
+          ctx.appendPosition(if (ctx.isAbstract) ctx.type_maps.getNewContent(node.asString()) else node.asString(), parent = node)
           if (tgt != null) logger.debug(f"[${node.asString()}]" + getUpArrow + getPath(node, tgt) + getDownArrow + s"<${tgt.toString()}>")
         }
         case tp:VarType  =>{
-          val value = if (ctx.isAbstract) ctx.type_maps.getNewContent(node.asString()) else node.asString()
-          ctx.append(content = value, position = node.genPositionalEmbedding(ctx))
+          ctx.appendPosition(if (ctx.isAbstract) ctx.type_maps.getNewContent(node.asString()) else node.asString(), parent = node)
           if (tgt != null) logger.debug(f"[${node.asString()}]" + getUpArrow + getPath(node, tgt) + getDownArrow + s"<${tgt.toString()}>")
         }
         case tp:ReferenceType  => tp.genCode(ctx, numsIntent, tgt)
         case tp:UnknownType  => {
-          val value = if (ctx.isAbstract) ctx.type_maps.getNewContent(node.asString()) else node.asString()
-          ctx.append(content = value, position = node.genPositionalEmbedding(ctx))
+          ctx.appendPosition(if (ctx.isAbstract) ctx.type_maps.getNewContent(node.asString()) else node.asString(), parent = node)
           if (tgt != null) logger.debug(f"[${node.asString()}]" + getUpArrow + getPath(node, tgt) + getDownArrow + s"<${tgt.toString()}>")
         }
         case tp:PrimitiveType  =>{
-          val value = if (ctx.isAbstract) ctx.type_maps.getNewContent(node.asString()) else node.asString()
-          ctx.append(content = value, position = node.genPositionalEmbedding(ctx))
+          ctx.appendPosition(if (ctx.isAbstract) ctx.type_maps.getNewContent(node.asString()) else node.asString(), parent = node)
           if (tgt != null) logger.debug(f"[${node.asString()}]" + getUpArrow + getPath(node, tgt) + getDownArrow + s"<${tgt.toString()}>")
         }
         case tp:WildcardType  =>{
-          val value = if (ctx.isAbstract) ctx.type_maps.getNewContent(node.asString()) else node.asString()
-          ctx.append(content = value, position = node.genPositionalEmbedding(ctx))
+          ctx.appendPosition(if (ctx.isAbstract) ctx.type_maps.getNewContent(node.asString()) else node.asString(), parent = node)
           if (tgt != null) logger.debug(f"[${node.asString()}]" + getUpArrow + getPath(node, tgt) + getDownArrow + s"<${tgt.toString()}>")
         }
         case tp:VoidType  =>{
-          val value = if (ctx.isAbstract) ctx.type_maps.getNewContent(node.asString()) else node.asString()
-          ctx.append(content = value, position = node.genPositionalEmbedding(ctx))
+          ctx.appendPosition(if (ctx.isAbstract) ctx.type_maps.getNewContent(node.asString()) else node.asString(), parent = node)
           if (tgt != null) logger.debug(f"[${node.asString()}]" + getUpArrow + getPath(node, tgt) + getDownArrow + s"<${tgt.toString()}>")
         }
         case tp:IntersectionType  =>{
-          val value = if (ctx.isAbstract) ctx.type_maps.getNewContent(node.asString()) else node.asString()
-          ctx.append(content = value, position = node.genPositionalEmbedding(ctx))
+          ctx.appendPosition(if (ctx.isAbstract) ctx.type_maps.getNewContent(node.asString()) else node.asString(), parent = node)
           if (tgt != null) logger.debug(f"[${node.asString()}]" + getUpArrow + getPath(node, tgt) + getDownArrow + s"<${tgt.toString()}>")
         }
       }
@@ -1365,8 +1273,8 @@ trait EnrichedTrees extends utils.Common {
       val origin = node.getOrigin
       val comType = node.getComponentType
       comType.genCode(ctx, numsIntent, tgt)
-      appendPositionalEmbedding(ctx, node, "[", 0)
-      appendPositionalEmbedding(ctx, node, "]", 0)
+      ctx.appendPosition("[", parent = node)
+      ctx.appendPosition("]", parent = node)
     }
   }
 
@@ -1375,21 +1283,20 @@ trait EnrichedTrees extends utils.Common {
       val name = node.getName
       val typeBound = node.getTypeBound
 
-      appendPositionalEmbedding(ctx, node, "<", 0)
+      ctx.appendPosition("<", parent = node)
 
       if (ctx.isAbstract)
-        ctx.append(ctx.type_maps.getNewContent(name.asString()))
+        ctx.appendPosition(ctx.type_maps.getNewContent(name.asString()), parent = node)
       else name.genCode(ctx, numsIntent, tgt)
 
       if (typeBound.size() != 0){
-        val value = if (ctx.isAbstract) ctx.ident_maps.getNewContent("extends") else "extends"
-        appendPositionalEmbedding(ctx, node, value, 0)
+        ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("extends") else "extends", parent = node)
         typeBound.foreach(bound => {
           bound.genCode(ctx, numsIntent, tgt)
-          if (bound != typeBound.last) appendPositionalEmbedding(ctx, node, "&", 0)
+          if (bound != typeBound.last) ctx.appendPosition("&", parent = node)
         })
       }
-      appendPositionalEmbedding(ctx, node, ">", 0)
+      ctx.appendPosition(">", parent = node)
     }
   }
 
@@ -1401,19 +1308,19 @@ trait EnrichedTrees extends utils.Common {
 
       if (ctx.isAbstract) {
         val value = (if (scope.isPresent) scope.get().asString() + "." else EmptyString) + name.asString()
-        ctx.append(content = ctx.type_maps.getNewContent(value), position = name.genPositionalEmbedding(ctx))
+        ctx.appendPosition(ctx.type_maps.getNewContent(value), parent = node)
       } else {
         if (scope.isPresent) {
           scope.get().genCode(ctx, numsIntent, tgt)
-          appendPositionalEmbedding(ctx, node, ".", 0)
+          ctx.appendPosition(".", parent = node)
         }
         name.genCode(ctx, numsIntent, tgt)
       }
 
       if (tps.isPresent){
-        appendPositionalEmbedding(ctx, node, "<", 0)
+        ctx.appendPosition("<", parent = node)
         tps.get().foreach(_.genCode(ctx, numsIntent, tgt))
-        appendPositionalEmbedding(ctx, node, ">", 0)
+        ctx.appendPosition(">", parent = node)
       }
     }
   }
@@ -1430,7 +1337,7 @@ trait EnrichedTrees extends utils.Common {
       tp.genCode(ctx, numsIntent, tgt)
 
       if (ctx.isAbstract) {
-        ctx.append(ctx.variable_maps.getNewContent(name.asString()), position = name.genPositionalEmbedding(ctx))
+        ctx.appendPosition(ctx.variable_maps.getNewContent(name.asString()), parent = node)
       } else
         name.genCode(ctx, numsIntent, tgt)
     }
@@ -1439,21 +1346,17 @@ trait EnrichedTrees extends utils.Common {
   implicit class genName(node:Name) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
 
+      //TODO with Qualifier
       val qualifier = node.getQualifier
       if (qualifier.isPresent){
-        if (ctx.isAbstract) {
-          val value = ctx.ident_maps.getNewContent(qualifier.get().asString())
-          val pos = qualifier.get().genPositionalEmbedding(ctx)
-          ctx.append(content = value, position = pos)
-        }
+        if (ctx.isAbstract)
+          ctx.appendPosition(ctx.ident_maps.getNewContent(qualifier.get().asString()), parent = node)
         else
           qualifier.get().genCode(ctx, numsIntent)
-
-        appendPositionalEmbedding(ctx,node, ".", -1)
+        ctx.appendPosition(".", parent = node)
       }
-      val qual_value = if (ctx.isAbstract) ctx.variable_maps.getNewContent(node.getIdentifier) else node.getIdentifier
-      val qual_pos = node.genPositionalEmbedding(ctx)
-      ctx.append(content = qual_value, position = qual_pos)
+      if (ctx.isAbstract) ctx.appendPosition(ctx.variable_maps.getNewContent(node.getIdentifier), parent = node) else ctx.appendPosition(node.getIdentifier, parent = node)
+
     }
   }
 
@@ -1508,6 +1411,13 @@ trait EnrichedTrees extends utils.Common {
     val allPaths = new ListBuffer[Node]
     getAllScopePath(scope, allPaths)
 
+//    if (logger.isDebugEnabled) {
+    ////      val scope_name = getScopeNodeName(scope)
+    ////      for (elem <- allPaths) {
+    ////        val name = getScopeNodeName(elem)
+    ////        logger.debug(f"${scope_name} - ${name} ############## ${elem.getClass}")
+    ////      }
+    ////    }
 
     /**
      * If scope is a format of method call, then we need to expand it,

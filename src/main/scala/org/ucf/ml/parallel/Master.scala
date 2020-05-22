@@ -14,7 +14,7 @@ import scala.collection.JavaConversions._
 class Master (configPath:String = "src/main/resources/default_application.conf") extends utils.Common {
 
   /* Load configurations from a file*/
-  private val config = new Config(configPath)
+  val config = new Config(configPath)
   def getConfig = this.config
   private val nums_worker = this.getConfig.getNumsWorker
   private val isParallel = this.getConfig.getIsParallel
@@ -52,7 +52,8 @@ class Master (configPath:String = "src/main/resources/default_application.conf")
           tgt_batch = fixed_files.slice(start, end),
           idioms=project_idioms,
           worker_id = index,
-          granularity = METHOD))
+          granularity = METHOD,
+          config))
       }
 
 

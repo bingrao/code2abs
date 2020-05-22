@@ -31,8 +31,8 @@ class Worker(wtx: WorkerContext) extends Callable[WorkerContext] with utils.Comm
     _task(ctx, fixedPath, TARGET, wtx.get_granularity)
 
     // append results
-    wtx.append_buggy(ctx.get_buggy_abstract)
-    wtx.append_fixed(ctx.get_fixed_abstract)
+    wtx.append_buggy(ctx.get_buggy_abstract(wtx.isWithPosition))
+    wtx.append_fixed(ctx.get_fixed_abstract(wtx.isWithPosition))
 
     if (!last) {
       wtx.append_buggy("\n")

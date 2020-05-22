@@ -76,8 +76,8 @@ buildNumber.properties
 *.iml
 log4j-application*
 
-data/processed
-log/
+data/small/processed
+logs/
 
 # End of https://www.gitignore.io/api/eclipse
 

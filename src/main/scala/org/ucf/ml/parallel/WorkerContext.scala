@@ -12,7 +12,9 @@ import scala.collection.mutable
 class WorkerContext(src_batch:List[String] = null,
                     tgt_batch:List[String] = null,
                     idioms:mutable.HashSet[String],
-                    worker_id:Int, granularity: Value = METHOD) {
+                    worker_id:Int,
+                    granularity: Value = METHOD,
+                    config: Config) {
 
   private val buggy_abstract = new StringBuilder
   private val fixed_abstract = new StringBuilder
@@ -31,5 +33,7 @@ class WorkerContext(src_batch:List[String] = null,
   def get_tgt_batch = this.tgt_batch
   def get_work_id = this.worker_id
   def get_granularity = this.granularity
+
+  def isWithPosition = config.getIsWithPosition
 
 }

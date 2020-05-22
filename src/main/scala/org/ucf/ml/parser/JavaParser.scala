@@ -65,7 +65,7 @@ class JavaParser extends Visitor  {
     /**Traverse AST to gen abstract code**/
     genAbstractCode(context, cu)
 
-    context.get_buggy_abstract
+    context.get_buggy_abstract()
   }
 
   /******************************************  [[APIs for Python Call]] **********************************************/

@@ -58,15 +58,12 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
     }
   }
 
-  private var isPosition = true
-  def getIsPosition = this.isPosition
-  def setIsPosition(value:Boolean) = this.isPosition = value
-
   private val buggy_abstract = AbstractContext(SOURCE)
   private val fixed_abstract = AbstractContext(TARGET)
-  def get_buggy_abstract =
+
+  def get_buggy_abstract(isPosition:Boolean = false) =
     if (isPosition) buggy_abstract.get_token_abstract_with_position else buggy_abstract.get_token_abstract
-  def get_fixed_abstract =
+  def get_fixed_abstract(isPosition:Boolean = false) =
     if (isPosition) fixed_abstract.get_token_abstract_with_position else fixed_abstract.get_token_abstract
 
 
@@ -98,8 +95,8 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
   }
 
   def get_abstract_code = this.getCurrentMode match {
-    case SOURCE => this.get_buggy_abstract
-    case TARGET => this.get_fixed_abstract
+    case SOURCE => this.get_buggy_abstract()
+    case TARGET => this.get_fixed_abstract()
   }
 
   def append(content:String, numsIntent:Int = 0, position:PositionEmbeddingType = List.fill(1)(-1)) = this.getCurrentMode match {

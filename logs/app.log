@@ -140,3 +140,33 @@
 2020-05-22 01:39:12 INFO  Worker:8 - Worker 0 deal with 26 task in 317 milliseconds
 2020-05-22 01:39:12 INFO  Worker:8 - Worker 3 deal with 22 task in 328 milliseconds
 2020-05-22 01:39:12 INFO  Worker:8 - Worker 2 deal with 26 task in 358 milliseconds
+2020-05-22 02:41:05 INFO  TestAbstract:8 - Position nums 33
+2020-05-22 02:41:05 INFO  TestAbstract:8 - Position nums 36
+2020-05-22 02:41:05 INFO  TestAbstract:8 - Position nums 57
+2020-05-22 02:41:05 INFO  TestPosition:8 - Position nums 23
+2020-05-22 02:59:19 INFO  Master:8 - Get 100 files in directory data/small/raw/buggy/
+2020-05-22 02:59:19 INFO  Master:8 - Get 100 files in directory data/small/raw/fixed/
+2020-05-22 02:59:19 INFO  Master:8 - Loading 100 java files from data/small/raw/buggy/
+2020-05-22 02:59:19 INFO  Master:8 - Loading 100 java files from data/small/raw/fixed/
+2020-05-22 02:59:19 INFO  Master:8 - The total buggy/fixed files is 100, #of Workers 4, batch size 26
+2020-05-22 02:59:19 INFO  Master:8 - Create a new worker [0] to handle Java file indexed from 1 to 26
+2020-05-22 02:59:19 INFO  Master:8 - Create a new worker [1] to handle Java file indexed from 27 to 52
+2020-05-22 02:59:19 INFO  Master:8 - Create a new worker [2] to handle Java file indexed from 53 to 78
+2020-05-22 02:59:19 INFO  Master:8 - Create a new worker [3] to handle Java file indexed from 79 to 100
+2020-05-22 02:59:19 INFO  Worker:8 - Worker 1 deal with 26 task in 497 milliseconds
+2020-05-22 02:59:19 INFO  Worker:8 - Worker 3 deal with 22 task in 513 milliseconds
+2020-05-22 02:59:19 INFO  Worker:8 - Worker 0 deal with 26 task in 534 milliseconds
+2020-05-22 02:59:19 INFO  Worker:8 - Worker 2 deal with 26 task in 542 milliseconds
+2020-05-22 02:59:44 INFO  Master:8 - Get 100 files in directory data/small/raw/buggy/
+2020-05-22 02:59:44 INFO  Master:8 - Get 100 files in directory data/small/raw/fixed/
+2020-05-22 02:59:44 INFO  Master:8 - Loading 100 java files from data/small/raw/buggy/
+2020-05-22 02:59:44 INFO  Master:8 - Loading 100 java files from data/small/raw/fixed/
+2020-05-22 02:59:44 INFO  Master:8 - The total buggy/fixed files is 100, #of Workers 4, batch size 26
+2020-05-22 02:59:44 INFO  Master:8 - Create a new worker [0] to handle Java file indexed from 1 to 26
+2020-05-22 02:59:44 INFO  Master:8 - Create a new worker [1] to handle Java file indexed from 27 to 52
+2020-05-22 02:59:44 INFO  Master:8 - Create a new worker [2] to handle Java file indexed from 53 to 78
+2020-05-22 02:59:44 INFO  Master:8 - Create a new worker [3] to handle Java file indexed from 79 to 100
+2020-05-22 02:59:45 INFO  Worker:8 - Worker 1 deal with 26 task in 501 milliseconds
+2020-05-22 02:59:45 INFO  Worker:8 - Worker 0 deal with 26 task in 508 milliseconds
+2020-05-22 02:59:45 INFO  Worker:8 - Worker 3 deal with 22 task in 513 milliseconds
+2020-05-22 02:59:45 INFO  Worker:8 - Worker 2 deal with 26 task in 547 milliseconds

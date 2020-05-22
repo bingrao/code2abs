@@ -26,4 +26,6 @@ class PropertiesLoader(configPath:String = "src/main/resources/default_applicati
 
   def getIsSplitData = conf.getBoolean("IsSplitData")
 
+  def getIsWithPosition = conf.getBoolean("IsWithPosition")
+
 }

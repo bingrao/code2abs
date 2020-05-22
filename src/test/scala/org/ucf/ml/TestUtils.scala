@@ -40,13 +40,13 @@ trait TestUtils extends parser.JavaParser with utils.Common {
 
     println(cu)
     println("***************************************************")
-    println(ctx.get_buggy_abstract)
+    println(ctx.get_buggy_abstract())
     println("***************************************************")
     ctx.dumpy_mapping()
     println("***************************************************")
     ctx.buggy_toString
     println("***************************************************")
-    println(ctx.get_buggy_abstract)
+    println(ctx.get_buggy_abstract())
   }
 
 

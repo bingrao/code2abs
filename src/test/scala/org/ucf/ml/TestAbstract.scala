@@ -14,13 +14,14 @@ class TestAbstract extends TestUtils {
         |   Int c = a + b;
         | }
         |""".stripMargin
-    val code = getAbstractCode(inputClass, granularity = METHOD, isFile = false)
+    val code = genAbstratCodeWithPosition(inputClass, granularity = METHOD, isFile = false)
     println(code)
   }
 
   @Test def testAbstract() {
     val inputClass =
       """
+        |package org.ucf.java;
         |public class JavaApp {
         |    public void hello(String input) {
         |        Int c = a + b;

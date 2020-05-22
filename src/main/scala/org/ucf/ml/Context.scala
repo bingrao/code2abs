@@ -33,10 +33,35 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
     def get_token_poistion = this.token_position
     def append_position(pos:PositionEmbeddingType) = this.token_position.+=(pos)
 
+    def get_token_abstract_with_position =
+      (token_abstract.toList zip token_position.toList).map{case (token, pos) => {
+        s"${token}@[${pos.mkString(",")}]"
+      }}.mkString(" ")
+
+
+    def printPretty() = {
+      for ((token, position) <- token_abstract.toList zip token_position.toList) {
+        // left alian 10 chars
+        println("%-10s, [%d]-%s".format(token, position.size, position.mkString(",")))
+      }
+    }
   }
+
+  private var isPosition = true
+  def getIsPosition = this.isPosition
+  def setIsPosition(value:Boolean) = this.isPosition = value
 
   private val buggy_abstract = AbstractContext(SOURCE)
   private val fixed_abstract = AbstractContext(TARGET)
+  def get_buggy_abstract =
+    if (isPosition) buggy_abstract.get_token_abstract_with_position else buggy_abstract.get_token_abstract
+  def get_fixed_abstract =
+    if (isPosition) fixed_abstract.get_token_abstract_with_position else fixed_abstract.get_token_abstract
+
+
+  def buggy_toString = buggy_abstract.printPretty()
+  def fixed_toString = fixed_abstract.printPretty()
+
   // Shared Object by fixed and buggy
 
   val positionalEmbedding = new HashMap[Node, PositionEmbeddingType]
@@ -61,12 +86,12 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
     case TARGET => this.fixed_abstract.getNewPosition
   }
 
-  def get_abstract = this.getCurrentMode match {
-    case SOURCE => this.buggy_abstract.get_token_abstract
-    case TARGET => this.fixed_abstract.get_token_abstract
+  def get_abstract_code = this.getCurrentMode match {
+    case SOURCE => this.get_buggy_abstract
+    case TARGET => this.get_fixed_abstract
   }
 
-  def append(content:String, numsIntent:Int = 0, position:PositionEmbeddingType = null) = this.getCurrentMode match {
+  def append(content:String, numsIntent:Int = 0, position:PositionEmbeddingType = List.fill(1)(-1)) = this.getCurrentMode match {
     case SOURCE => {
       this.buggy_abstract.append_abstract(content)
       this.buggy_abstract.append_position(position)
@@ -82,16 +107,19 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
   def appendPosition(content:String, index:Int=0, position:PositionEmbeddingType = null, parent:Node=null) = {
 
     val pos = if ((position == null) && (parent != null)) {
-      val parant_pos = parent.genPositionalEmbedding(this)
+      val parant_pos = parent.genPosition(this)
       val pos_size = parent.getChildNodes.size() + nums_wrap_position
       val newIndex = if (index >= 0) index else (pos_size + index)
       val newNode = new SimpleName().setId(content).setParentNode(parent)
-      val newposition = List.fill(pos_size)(0.0).updated(newIndex, 1.0) ::: parant_pos
+      val newposition = List.fill(pos_size)(0).updated(newIndex, 1) ::: parant_pos
       this.addPositionalEmbedding(newNode, newposition)
       newposition
     } else position
 
-    this.append(content = content, position = pos)
+    if (pos != null)
+      this.append(content = content, position = pos)
+    else
+      this.append(content = content)
   }
 
 
@@ -103,15 +131,14 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
     case TARGET => if (isNewLine) this.fixed_abstract.append_abstract("\n")
   }
 
-  def get_buggy_abstract = buggy_abstract.get_token_abstract
-  def get_fixed_abstract = fixed_abstract.get_token_abstract
+
 
 
   /* Generating abstrace code */
   var isAbstract = true
   def setIsAbstract(value:Boolean) = this.isAbstract = value
 
-
+  // CLASS or METHOD
   private var gran = granularity
   def getGranularity = gran
   def setGranularity(value:Value) = this.gran = value

@@ -53,8 +53,8 @@ class JavaParser extends Visitor  {
     StaticJavaParser.parse(source)
   }
 
-  def getAbstractCode(sourcePath:String, idiomPath:String = "data/idioms/idioms.csv",
-                      granularity:Value = METHOD, isFile:Boolean = false) = {
+  def genAbstratCodeWithPosition(sourcePath:String, idiomPath:String = "data/idioms/idioms.csv",
+                                 granularity:Value = METHOD, isFile:Boolean = false) = {
     val project_idioms = readIdioms(idiomPath)
     val context = new Context(project_idioms, granularity)
     val cu = getComplationUnit(sourcePath, granularity, isFile)
@@ -86,16 +86,16 @@ class JavaParser extends Visitor  {
    *  Reference: https://www.py4j.org/getting_started.html
    */
   def getAbstractCodeFromStringMethod(sourcePath:String, idiomPath:String = "idioms/idioms.csv") =
-    getAbstractCode(sourcePath, idiomPath, METHOD, false)
+    genAbstratCodeWithPosition(sourcePath, idiomPath, METHOD, false)
 
   def getAbstractCodeFromStringClass(sourcePath:String, idiomPath:String = "idioms/idioms.csv") =
-    getAbstractCode(sourcePath, idiomPath, CLASS, false)
+    genAbstratCodeWithPosition(sourcePath, idiomPath, CLASS, false)
 
   def getAbstractCodeFromFileMethod(sourcePath:String, idiomPath:String = "idioms/idioms.csv") =
-    getAbstractCode(sourcePath, idiomPath, METHOD, true)
+    genAbstratCodeWithPosition(sourcePath, idiomPath, METHOD, true)
 
   def getAbstractCodeFromFileSClass(sourcePath:String, idiomPath:String = "idioms/idioms.csv") =
-    getAbstractCode(sourcePath, idiomPath, CLASS, true)
+    genAbstratCodeWithPosition(sourcePath, idiomPath, CLASS, true)
 
 
   @deprecated

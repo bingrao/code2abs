@@ -20,8 +20,11 @@ trait TestUtils extends parser.JavaParser with utils.Common {
     printAST(outPath="log/test.Yaml", cu = cu, format = "ymal")
     printAST(outPath="log/test.dot", cu = cu, format = "dot")
 
-    genAbstractCode(ctx, cu)
+    /**Traverse AST to generate corresponding node's positional embedding**/
+    genPositionEmbedding(ctx, cu)
 
+    /**Traverse AST to gen abstract code**/
+    genAbstractCode(ctx, cu)
 
     logger.info(s"Position nums ${ctx.positionalEmbedding.size}")
 
@@ -32,15 +35,18 @@ trait TestUtils extends parser.JavaParser with utils.Common {
       else if (key.isInstanceOf[NameExpr])
         key.asInstanceOf[NameExpr].getNameAsString
       else EmptyString
-
-      println(s"${value.reverse.toString()} <- ${key.getClass.getName}-[${name}]")
+      println("%-40s %s".format(key.getClass.getName.split("\\.").last + s"[${name}]", value.toString()))
     }}
 
     println(cu)
     println("***************************************************")
-    println(ctx.get_buggy_abstract.toString)
+    println(ctx.get_buggy_abstract)
     println("***************************************************")
     ctx.dumpy_mapping()
+    println("***************************************************")
+    ctx.buggy_toString
+    println("***************************************************")
+    println(ctx.get_buggy_abstract)
   }
 
 
@@ -53,13 +59,17 @@ trait TestUtils extends parser.JavaParser with utils.Common {
 
     val cu = getComplationUnit(inputPath, granularity)
 
+    /**Traverse AST to generate corresponding node's positional embedding**/
+    genPositionEmbedding(ctx, cu)
+
+    /**Traverse AST to gen abstract code**/
     genAbstractCode(ctx, cu)
 
     if (logger.isDebugEnabled) {
       logger.debug(f"process ${mode} Source code ${inputPath}")
       printAST(outPath=f"log/test-${mode}.Yaml", cu = cu, format = "ymal")
       println(cu)
-      println(ctx.get_abstract)
+      println(ctx.get_abstract_code)
       println("******************************************************\n")
     }
   }

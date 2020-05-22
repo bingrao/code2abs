@@ -78,10 +78,10 @@ trait Visitor extends EnrichedTrees {
 
       // We initially set up positional embedding of a method as start point: [0.0]
       case n:MethodDeclaration => {
-        val pos = List.fill(1)(0.0)
+        val pos = List.fill(1)(0)
         ctx.addPositionalEmbedding(node, pos)
       }
-      case _ => node.genPositionalEmbedding(ctx)
+      case _ => node.genPosition(ctx)
     }
 
   }
@@ -122,5 +122,6 @@ trait Visitor extends EnrichedTrees {
   def genAbstractCode(ctx:Context, cu:CompilationUnit) = cu.genCode(ctx)
 
   def genPositionEmbedding(ctx:Context, cu:CompilationUnit) = genPostionVisitor(ctx).visitBreadthFirst(cu)
+
 
 }

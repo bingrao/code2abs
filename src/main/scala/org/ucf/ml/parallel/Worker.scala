@@ -30,7 +30,7 @@ class Worker(workerContext: WorkerContext) extends Callable[WorkerContext] with 
     _task(ctx, buggyPath, SOURCE, workerContext.get_granularity)
     _task(ctx, fixedPath, TARGET, workerContext.get_granularity)
 
-
+    // append results
     workerContext.append_buggy(ctx.get_buggy_abstract)
     workerContext.append_fixed(ctx.get_fixed_abstract)
 
@@ -42,6 +42,7 @@ class Worker(workerContext: WorkerContext) extends Callable[WorkerContext] with 
 
   def job(): WorkerContext = {
     val start = System.currentTimeMillis()
+
     /*Iteration Executing task to handle with all involved in data*/
     for (idx <- 0 until workerContext.batch_size) {
       task(workerContext.get_src_batch(idx), workerContext.get_tgt_batch(idx), idx == workerContext.batch_size - 1)

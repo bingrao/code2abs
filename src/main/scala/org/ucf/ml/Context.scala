@@ -6,6 +6,7 @@ import org.ucf.ml.utils.{Common, Count}
 
 import scala.collection.mutable
 import com.github.javaparser.ast.Node
+import com.github.javaparser.ast.expr.SimpleName
 
 import scala.collection.mutable.{HashMap, ListBuffer}
 /**
@@ -31,6 +32,7 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
 
     def get_token_poistion = this.token_position
     def append_position(pos:PositionEmbeddingType) = this.token_position.+=(pos)
+
   }
 
   private val buggy_abstract = AbstractContext(SOURCE)
@@ -75,6 +77,23 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
       this.fixed_abstract.append_position(position)
     }
   }
+
+
+  def appendPosition(parent:Node, term:String, index:Int=0, pos:PositionEmbeddingType = null) = {
+
+    val position = if (pos == null) {
+      val parant_pos = parent.genPositionalEmbedding(this)
+      val pos_size = parent.getChildNodes.size() + nums_wrap_position
+      val newIndex = if (index >= 0) index else (pos_size + index)
+      val newNode = new SimpleName().setId(term).setParentNode(parent)
+      val position = List.fill(pos_size)(0.0).updated(newIndex, 1.0) ::: parant_pos
+      this.addPositionalEmbedding(newNode, position)
+      position
+    } else pos
+
+    this.append(content = term, position = position)
+  }
+
 
   private var isNewLine = false
   def setNewLine(value:Boolean) = this.isNewLine = value

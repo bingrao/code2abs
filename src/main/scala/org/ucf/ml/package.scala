@@ -1,8 +1,38 @@
 package org.ucf
 
+import com.github.javaparser.ast.Node
+
 import scala.collection.mutable
 
 package object ml extends Enumeration {
+
+  val nums_wrap_position = 6
+
+  implicit class genPosition(node:Node) {
+    def genPositionalEmbedding(ctx:Context):PositionEmbeddingType = {
+      if (ctx.positionalEmbeddingIsContain(node))
+        ctx.getPositionalEmbedding(node).get
+      else if (node.getParentNode.isPresent) {
+        val pararent = node.getParentNode.get()
+        val branch = pararent.getChildNodes.indexOf(node)
+        val position = List.fill(pararent.getChildNodes.size() + nums_wrap_position)(0.0)
+          .updated(branch + nums_wrap_position/2, 1.0)
+
+        val pararent_position = if (ctx.positionalEmbeddingIsContain(pararent))
+          ctx.getPositionalEmbedding(pararent).get
+        else {
+          val par_pos = pararent.genPositionalEmbedding(ctx)
+          ctx.addPositionalEmbedding(pararent, par_pos)
+          par_pos
+        }
+        val new_position = position ::: pararent_position
+        ctx.addPositionalEmbedding(node, new_position)
+        new_position
+      } else {
+        List.fill(node.getChildNodes.size())(0.0)
+      }
+    }
+  }
 
   // recursive function return value for gencode func in implicit class
   final val EmptyString:String = ""

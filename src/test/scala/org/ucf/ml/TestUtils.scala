@@ -22,6 +22,20 @@ trait TestUtils extends parser.JavaParser with utils.Common {
 
     genAbstractCode(ctx, cu)
 
+
+    logger.info(s"Position nums ${ctx.positionalEmbedding.size}")
+
+    ctx.positionalEmbedding.foreach{case (key, value) => {
+
+      val name = if (key.isInstanceOf[SimpleName])
+        key.asInstanceOf[SimpleName].asString()
+      else if (key.isInstanceOf[NameExpr])
+        key.asInstanceOf[NameExpr].getNameAsString
+      else EmptyString
+
+      println(s"${value.reverse.toString()} <- ${key.getClass.getName}-[${name}]")
+    }}
+
     println(cu)
     println("***************************************************")
     println(ctx.get_buggy_abstract.toString)

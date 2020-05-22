@@ -81,7 +81,7 @@ trait Visitor extends EnrichedTrees {
         val pos = List.fill(1)(0.0)
         ctx.addPositionalEmbedding(node, pos)
       }
-      case _ => node.getPositionalEmbedding(ctx)
+      case _ => node.genPositionalEmbedding(ctx)
     }
 
   }

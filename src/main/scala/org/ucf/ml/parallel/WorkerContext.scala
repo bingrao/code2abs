@@ -32,5 +32,4 @@ class WorkerContext(src_batch:List[String] = null,
   def get_work_id = this.worker_id
   def get_granularity = this.granularity
 
-
 }

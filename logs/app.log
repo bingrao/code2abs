@@ -140,3 +140,6 @@
 2020-05-22 01:39:12 INFO  Worker:8 - Worker 0 deal with 26 task in 317 milliseconds
 2020-05-22 01:39:12 INFO  Worker:8 - Worker 3 deal with 22 task in 328 milliseconds
 2020-05-22 01:39:12 INFO  Worker:8 - Worker 2 deal with 26 task in 358 milliseconds
+2020-05-22 10:55:12 INFO  TestAbstract:8 - Position nums 36
+2020-05-22 11:24:14 INFO  TestAbstract:8 - Position nums 36
+2020-05-22 11:28:31 INFO  TestAbstract:8 - Position nums 36

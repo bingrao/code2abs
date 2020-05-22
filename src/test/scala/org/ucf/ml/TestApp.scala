@@ -35,4 +35,6 @@ class ScalaTestAPP extends TestUtils {
     val worker = new parallel.Master()
     worker.run()
   }
+
+
 }

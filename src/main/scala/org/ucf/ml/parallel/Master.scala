@@ -94,26 +94,70 @@ class Master (configPath:String = "src/main/resources/default_application.conf")
 
         val train_buggy = random.shuffle(buggy_abstract).take(nums_train.toInt)
         val train_fixed = random.shuffle(fixed_abstract).take(nums_train.toInt)
-        write(getConfig.getOutputBuggyDir+"train/buggy.txt", train_buggy.mkString("\n"))
-        write(getConfig.getOutputBuggyDir+"train/fixed.txt", train_fixed.mkString("\n"))
+        if (config.getIsConcatPosition) {
+          write(getConfig.getOutputBuggyDir + "train-buggy.txt", train_buggy.mkString("\n"))
+          write(getConfig.getOutputBuggyDir + "train-fixed.txt", train_fixed.mkString("\n"))
+        } else {
+          val train_buggy_ = train_buggy.map{case seq => {seq.split(" ").map(_.split("@").head).mkString(" ")}}
+          val train_buggy_pos = train_buggy.map{case seq => {seq.split(" ").map(_.split("@").last).mkString(" ")}}
+          val train_fixed_ = train_fixed.map{case seq => {seq.split(" ").map(_.split("@").head).mkString(" ")}}
+          val train_fixed_pos = train_fixed.map{case seq => {seq.split(" ").map(_.split("@").last).mkString(" ")}}
 
+          write(getConfig.getOutputBuggyDir + "train-buggy.txt", train_buggy_.mkString("\n"))
+          write(getConfig.getOutputBuggyDir + "train-fixed.txt", train_fixed_.mkString("\n"))
+          write(getConfig.getOutputBuggyDir + "train-buggy-pos.txt", train_buggy_pos.mkString("\n"))
+          write(getConfig.getOutputBuggyDir + "train-fixed-pos.txt", train_fixed_pos.mkString("\n"))
+        }
 
         val test_buggy = random.shuffle(buggy_abstract diff train_buggy).take(nums_test.toInt)
         val test_fixed = random.shuffle(fixed_abstract diff train_fixed).take(nums_test.toInt)
-        write(getConfig.getOutputBuggyDir+"test/buggy.txt", test_buggy.mkString("\n"))
-        write(getConfig.getOutputBuggyDir+"test/fixed.txt", test_fixed.mkString("\n"))
+        if (config.getIsConcatPosition) {
+          write(getConfig.getOutputBuggyDir + "test-buggy.txt", test_buggy.mkString("\n"))
+          write(getConfig.getOutputBuggyDir + "test-fixed.txt", test_fixed.mkString("\n"))
+        } else {
+          val test_buggy_ = test_buggy.map{case seq => {seq.split(" ").map(_.split("@").head).mkString(" ")}}
+          val test_buggy_pos = test_buggy.map{case seq => {seq.split(" ").map(_.split("@").last).mkString(" ")}}
+          val test_fixed_ = test_fixed.map{case seq => {seq.split(" ").map(_.split("@").head).mkString(" ")}}
+          val test_fixed_pos = test_fixed.map{case seq => {seq.split(" ").map(_.split("@").last).mkString(" ")}}
 
+          write(getConfig.getOutputBuggyDir + "test-buggy.txt", test_buggy_.mkString("\n"))
+          write(getConfig.getOutputBuggyDir + "test-fixed.txt", test_fixed_.mkString("\n"))
+          write(getConfig.getOutputBuggyDir + "test-buggy-pos.txt", test_buggy_pos.mkString("\n"))
+          write(getConfig.getOutputBuggyDir + "test-fixed-pos.txt", test_fixed_pos.mkString("\n"))
+        }
 
         val eval_buggy = buggy_abstract diff train_buggy diff test_buggy
         val eval_fixed = fixed_abstract diff train_fixed diff test_fixed
-        write(getConfig.getOutputBuggyDir+"eval/buggy.txt", eval_buggy.mkString("\n"))
-        write(getConfig.getOutputBuggyDir+"eval/fixed.txt", eval_fixed.mkString("\n"))
+        if (config.getIsConcatPosition) {
+          write(getConfig.getOutputBuggyDir + "eval-buggy.txt", eval_buggy.mkString("\n"))
+          write(getConfig.getOutputBuggyDir + "eval-fixed.txt", eval_fixed.mkString("\n"))
+        } else {
+          val eval_buggy_ = eval_buggy.map{case seq => {seq.split(" ").map(_.split("@").head).mkString(" ")}}
+          val eval_buggy_pos = eval_buggy.map{case seq => {seq.split(" ").map(_.split("@").last).mkString(" ")}}
+          val eval_fixed_ = eval_fixed.map{case seq => {seq.split(" ").map(_.split("@").head).mkString(" ")}}
+          val eval_fixed_pos = eval_fixed.map{case seq => {seq.split(" ").map(_.split("@").last).mkString(" ")}}
 
+          write(getConfig.getOutputBuggyDir + "eval-buggy.txt", eval_buggy_.mkString("\n"))
+          write(getConfig.getOutputBuggyDir + "eval-fixed.txt", eval_fixed_.mkString("\n"))
+          write(getConfig.getOutputBuggyDir + "eval-buggy-pos.txt", eval_buggy_pos.mkString("\n"))
+          write(getConfig.getOutputBuggyDir + "eval-fixed-pos.txt", eval_fixed_pos.mkString("\n"))
+        }
       }
 
-      write(getConfig.getOutputBuggyDir+"total/buggy.txt", buggy_abstract.mkString("\n"))
-      write(getConfig.getOutputBuggyDir+"total/fixed.txt", fixed_abstract.mkString("\n"))
+      if (config.getIsConcatPosition) {
+        write(getConfig.getOutputBuggyDir + "total/buggy.txt", buggy_abstract.mkString("\n"))
+        write(getConfig.getOutputBuggyDir + "total/fixed.txt", fixed_abstract.mkString("\n"))
+      } else {
+        val abstract_buggy_ = buggy_abstract.map{case seq => {seq.split(" ").map(_.split("@").head).mkString(" ")}}
+        val abstract_buggy_pos = buggy_abstract.map{case seq => {seq.split(" ").map(_.split("@").last).mkString(" ")}}
+        val abstract_fixed_ = buggy_abstract.map{case seq => {seq.split(" ").map(_.split("@").head).mkString(" ")}}
+        val abstract_fixed_pos = buggy_abstract.map{case seq => {seq.split(" ").map(_.split("@").last).mkString(" ")}}
 
+        write(getConfig.getOutputBuggyDir + "total/buggy.txt", abstract_buggy_.mkString("\n"))
+        write(getConfig.getOutputBuggyDir + "total/fixed.txt", abstract_fixed_.mkString("\n"))
+        write(getConfig.getOutputBuggyDir + "total/buggy-pos.txt", abstract_buggy_pos.mkString("\n"))
+        write(getConfig.getOutputBuggyDir + "total/fixed-pos.txt", abstract_fixed_pos.mkString("\n"))
+      }
     } catch  {
       case e: FileNotFoundException => {
         e.printStackTrace()

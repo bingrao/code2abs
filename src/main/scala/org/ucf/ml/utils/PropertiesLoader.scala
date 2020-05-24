@@ -28,4 +28,6 @@ class PropertiesLoader(configPath:String = "src/main/resources/default_applicati
 
   def getIsWithPosition = conf.getBoolean("IsWithPosition")
 
+  def getIsConcatPosition = conf.getBoolean("IsConcatPosition")
+
 }

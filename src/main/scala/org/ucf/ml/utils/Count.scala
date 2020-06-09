@@ -7,7 +7,7 @@ import scala.collection.mutable
 class Count[K, V <: String](name:String, idioms:mutable.HashSet[String]) extends Common {
 
   private val data = collection.mutable.Map[K, V]()
-  private val offset = new AtomicInteger(0)
+  private val offset = new AtomicInteger(1)
   private val prefix = f"${name}_"
 
   def getPrefix = this.prefix

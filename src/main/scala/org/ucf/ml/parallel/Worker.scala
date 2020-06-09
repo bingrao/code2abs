@@ -6,7 +6,7 @@ import java.util.concurrent.Callable
 import scala.collection.mutable
 import java.io.File
 
-class Worker(wtx: WorkerContext) extends Callable[WorkerContext] with utils.Common{
+class Worker(wtx: WorkerContext) extends Callable[WorkerContext] with utils.Common {
 
   val javaPaser = wtx.javaPaser
 

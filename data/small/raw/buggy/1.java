@@ -1,7 +1,14 @@
-public java.util.List <com.googlecode.mp4parser.authoring.Sample> getSamples() {
-        java.util.ArrayList<com.googlecode.mp4parser.authoring.Sample> lists = new java.util.ArrayList<com.googlecode.mp4parser.authoring.Sample>();
-        for (com.googlecode.mp4parser.authoring.Track track : tracks) {
-        lists.addAll(track.getSamples());
+@org.junit.Test
+public void testClassWideAttributeInAnonymousClass() throws java.lang.Throwable {
+@com.orhanobut.tracklytics.FixedAttribute(key = "key1", value = "value1")
+class Foo {
+    @com.orhanobut.tracklytics.FixedAttribute(key = "key2", value = "value2")
+    class Inner {
+        @com.orhanobut.tracklytics.TrackEvent(value = "title")
+        public void bar() {
         }
-        return lists;
-        }
+    }
+}
+    invokeMethod(Foo.Inner.class, "bar");
+    com.orhanobut.tracklytics.AssertTracker.assertTrack(tracker).event("title").noTags().attribute("key1", "value1").attribute("key2", "value2").noSuperAttributes().noFilters();
+            }

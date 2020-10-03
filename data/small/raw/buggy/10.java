@@ -1,3 +1,5 @@
-public boolean hasViewOrContainer(java.lang.String ref) {
-    return (getViewCreatorIndex(ref)) > 0;
+class JavaApp {
+    public boolean hasViewOrContainer(java.lang.String ref) {
+        return (getViewCreatorIndex(ref)) > 0;
+    }
 }

@@ -41,6 +41,10 @@ trait TestUtils extends parser.JavaParser with utils.Common {
     println(cu)
     println("***************************************************")
     println(ctx.get_buggy_abstract())
+
+    val a = getComplationUnit(ctx.get_buggy_abstract(), METHOD, false)
+
+
     println("***************************************************")
     ctx.dumpy_mapping()
     println("***************************************************")

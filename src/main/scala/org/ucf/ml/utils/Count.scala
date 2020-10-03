@@ -4,11 +4,27 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import scala.collection.mutable
 
-class Count[K, V <: String](name:String, idioms:mutable.HashSet[String]) extends Common {
+class Count[K, V <: String](name:String, idioms:mutable.HashSet[String],
+                            exclude_keywords:Boolean=false) extends Common {
 
   private val data = collection.mutable.Map[K, V]()
   private val offset = new AtomicInteger(1)
   private val prefix = f"${name}_"
+  private val keywords = List("abstract", "assert", "boolean", "break", "byte",
+                              "case", "catch", "char", "class", "const",
+                              "continue", "default", "do", "double", "else",
+                              "enum", "extends", "final", "finally", "float",
+                              "for", "goto", "if", "implements", "import",
+                              "instanceof", "int", "interface", "long", "native",
+                              "new", "package", "private", "protected", "public",
+                              "return", "short", "static", "strictfp", "super",
+                              "switch", "synchronized", "this", "throw", "throws",
+                              "transient", "try", "void", "volatile", "while",
+                              "true", "false", "null", "var", "const",
+                              "goto")
+
+  idioms.--=(keywords)
+
 
   def getPrefix = this.prefix
   private def getNewValue = (f"${name}_${this.getIncCount}").asInstanceOf[V]
@@ -30,8 +46,11 @@ class Count[K, V <: String](name:String, idioms:mutable.HashSet[String]) extends
   def contain(key:K) = data.contains(key)
 
 
-  def getNewContent(key:K) = {
-    if (idioms.contains(key.toString))
+  def getNewContent(key:K, using_udiom:Boolean=true) = {
+
+    if (keywords.contains(key.toString) && ! exclude_keywords)
+      key.asInstanceOf[V]
+    else if (idioms.contains(key.toString))
       // the key is a idiom
       key.asInstanceOf[V]
     else if (this.contain(key)){

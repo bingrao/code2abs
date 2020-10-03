@@ -40,7 +40,6 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
         val sparseList = length :: (for ((value, index) <- position.zipWithIndex if value !=0) yield index)
         s"${token}@[${sparseList.mkString(",")}]"
       }}.mkString(" ")
-
     }
 
     def printPretty() = {
@@ -135,9 +134,7 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
   }
 
 
-
-
-  /* Generating abstrace code */
+  /* Generating abstract code */
   var isAbstract = true
   def setIsAbstract(value:Boolean) = this.isAbstract = value
 
@@ -148,18 +145,20 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
   ///////////////////////////////////////////////////////////////////////////////////////
   /********************* set up and look up statistical data ***************************/
 
+  // Java keywords and not appear identifiers in the context
   val ident_maps = new Count[String, String]("Ident", idioms)
-  val textBlock_maps = new Count[String, String]("text", idioms)
-  val string_maps = new Count[String, String]("String", idioms)
-  val char_maps = new Count[String, String]("Char", idioms)
-  val int_maps = new Count[String, String]("Integer", idioms)
-  val float_maps = new Count[String, String]("Float", idioms)
-  val long_maps = new Count[String, String]("Long", idioms)
-  val double_maps = new Count[String, String]("Double", idioms)
 
-  val type_maps = new Count[String, String]("Type", idioms)
-  val method_maps = new Count[String, String]("Method", idioms)
-  val variable_maps = new Count[String, String]("Varl", idioms)
+  val textBlock_maps = new Count[String, String]("text", idioms)
+  val string_maps = new Count[String, String]("String", idioms, true)
+  val char_maps = new Count[String, String]("Char", idioms, true)
+  val int_maps = new Count[String, String]("Integer", idioms, true)
+  val float_maps = new Count[String, String]("Float", idioms, true)
+  val long_maps = new Count[String, String]("Long", idioms, true)
+  val double_maps = new Count[String, String]("Double", idioms, true)
+
+  val type_maps = new Count[String, String]("Type", idioms, true)
+  val method_maps = new Count[String, String]("Method", idioms, true)
+  val variable_maps = new Count[String, String]("Var", idioms, true)
 
 
   ///////////////////////////////////////////////////////////////////////////////////////

@@ -4,7 +4,10 @@ package parser
 
 import com.github.javaparser.{JavaToken, StaticJavaParser}
 import com.github.javaparser.ast.CompilationUnit
+
 import scala.collection.JavaConversions._
+import gumtree.spoon.AstComparator
+
 
 class JavaParser extends Visitor  {
 
@@ -52,6 +55,26 @@ class JavaParser extends Visitor  {
     val source = Granularity.apply(sourcePath, granularity, isFile).getSourceCode()
     StaticJavaParser.parse(source)
   }
+
+  implicit class getASTDiffScore(ast: AstComparator){
+    def getDiffScore(buggy:String, fixed:String) = {
+      ast.compare(buggy, fixed)
+    }
+  }
+
+  def getASTDiff(srcPath:String, tgtPath:String, granularity:Value=METHOD, isFile:Boolean = true) = {
+    val src = Granularity.apply(srcPath, granularity, isFile).getSourceCode()
+    val tgt = Granularity.apply(tgtPath, granularity, isFile).getSourceCode()
+    val compare = new AstComparator()
+    val diff = compare.getDiffScore(src, tgt)
+    diff
+  }
+
+  def getASTDiffCount(srcPath:String, tgtPath:String, granularity:Value=METHOD, isFile:Boolean = true) = {
+    val diff = getASTDiff(srcPath, tgtPath, granularity, isFile)
+    diff.getAllOperations.size()
+  }
+
 
   def genAbstratCodeWithPosition(sourcePath:String, idiomPath:String = "data/idioms/idioms.csv",
                                  granularity:Value = METHOD, isFile:Boolean = false) = {

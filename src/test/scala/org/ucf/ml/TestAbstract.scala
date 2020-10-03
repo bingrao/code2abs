@@ -28,7 +28,7 @@ class TestAbstract extends TestUtils {
         |    }
         |}
         |""".stripMargin
-    get_abstract_code(inputClass, CLASS, false)
+//    get_abstract_code(inputClass, CLASS, false)
   }
 
   @Test def testAbstractFile_68(): Unit ={

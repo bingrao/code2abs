@@ -58,7 +58,7 @@ class TestASTDiff extends TestUtils {
 
 
   @Test def testGeneratedCode():Unit = {
-    val input = "data/small/processed/fixed.txt"
+    val input = "data/small/processed/buggy.txt"
     var cnt = 1
     val source = Source.fromFile(input)
     for (line <- source.getLines()){

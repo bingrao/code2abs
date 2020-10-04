@@ -1,7 +1,15 @@
 package org.ucf.ml
 
 /**
-  * @author 
+  * @author Bing
+  * How to run jar file
+ *  1. Using Scala command
+ * # export JAVA_OPTS="-Xmx32G -Xms1g -Xss512M -Dlog4j.configuration=file:///${ConfigPath}/log4j.properties"
+ * # scala "${BinPath}"/java_abstract-1.0-jar-with-dependencies.jar "abstract" "${ConfigAbstract}"
+ *
+ *  2. Using Java command
+ * # export JAVA_OPTS="-Xmx32G -Xms1g -Xss512M -Dlog4j.configuration=file:///${ConfigPath}/log4j.properties"
+ * # java "${JAVA_OPTS}" -cp "${BinPath}"/java_abstract-1.0-jar-with-dependencies.jar org.ucf.ml.App "abstract" "${ConfigAbstract}"
   */
 object App extends utils.Common {
   def main(args: Array[String]): Unit = {

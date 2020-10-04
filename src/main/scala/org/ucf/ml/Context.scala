@@ -148,17 +148,17 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
   // Java keywords and not appear identifiers in the context
   val ident_maps = new Count[String, String]("Ident", idioms)
 
-  val textBlock_maps = new Count[String, String]("text", idioms)
-  val string_maps = new Count[String, String]("String", idioms, true)
-  val char_maps = new Count[String, String]("Char", idioms, true)
-  val int_maps = new Count[String, String]("Integer", idioms, true)
-  val float_maps = new Count[String, String]("Float", idioms, true)
-  val long_maps = new Count[String, String]("Long", idioms, true)
-  val double_maps = new Count[String, String]("Double", idioms, true)
+  val textBlock_maps = new Count[String, String]("TEXT", idioms)
+  val string_maps = new Count[String, String]("STRING", idioms, true)
+  val char_maps = new Count[String, String]("CHAR", idioms, true)
+  val int_maps = new Count[String, String]("INT", idioms, true)
+  val float_maps = new Count[String, String]("FLOAT", idioms, true)
+  val long_maps = new Count[String, String]("LONG", idioms, true)
+  val double_maps = new Count[String, String]("DOUBEL", idioms, true)
 
-  val type_maps = new Count[String, String]("Type", idioms, true)
-  val method_maps = new Count[String, String]("Method", idioms, true)
-  val variable_maps = new Count[String, String]("Var", idioms, true)
+  val type_maps = new Count[String, String]("TYPE", idioms, true)
+  val method_maps = new Count[String, String]("METHOD", idioms, true)
+  val variable_maps = new Count[String, String]("VAR", idioms, true)
 
 
   ///////////////////////////////////////////////////////////////////////////////////////

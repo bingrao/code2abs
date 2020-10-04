@@ -95,6 +95,8 @@ class JavaParser extends Visitor  {
   /**
    *  The following four APIs is provided to work with python script to get abstract code
    *  Step 1: Execute Scala code [[GatewayServer]] to initial a py4j gateway server with [[JavaParser]] entry point
+   *  >>> java -Dlog4j.configuration=file:///home/bing/project/OpenNMT-py/examples/learning_fix/config/log4j.properties
+   *           -cp examples/learning_fix/bin/java_abstract-1.0-jar-with-dependencies.jar org.ucf.ml.GatewayServer 25333
    *
    *  Step 2: Execute following python to load [[JavaGateWay]] interface to communicate with jvm to retrieve
    *  corresponding objects. Please be aware that if you use relative path for your input parameters, you need them

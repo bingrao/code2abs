@@ -171,10 +171,6 @@ trait EnrichedTrees extends utils.Common {
 
       ctx.appendPosition("{", index = 0, parent = node)
       val entries = node.getEntries
-//      entries.foreach(entry => {
-//        entry.genCode(ctx, numsIntent)
-//        if (entry != entries.last) ctx.appendPosition(",", index = 1, parent = node)
-//      })
 
       for (i <- 0 until(entries.size())){
         entries.get(i).genCode(ctx, numsIntent)
@@ -264,28 +260,13 @@ trait EnrichedTrees extends utils.Common {
 
       val varibles = node.getVariables
 
-//      varibles.foreach(ele => {
-//        if (ele == varibles.head) ele.getType.genCode(ctx, numsIntent, node)
-//        if (ctx.isAbstract)
-//          ctx.appendPosition(ctx.variable_maps.getNewContent(ele.getNameAsString), position = ele.getName.genPosition(ctx))
-//        else
-//          ele.getName.genCode(ctx, numsIntent, node)
-//
-//        if (ele.getInitializer.isPresent){
-//          ctx.appendPosition("=", index = 0, parent = node)
-//          ele.getInitializer.get().genCode(ctx, numsIntent, node)
-//        }
-//
-//        if (ele != node.getVariables.last) ctx.appendPosition(",", index = 1, parent = node)
-//      })
-
-
       for (i <- 0 until(varibles.size())){
         val ele = varibles.get(i)
 
         if (i == 0) ele.getType.genCode(ctx, numsIntent, node)
         if (ctx.isAbstract)
-          ctx.appendPosition(ctx.variable_maps.getNewContent(ele.getNameAsString), position = ele.getName.genPosition(ctx))
+          ctx.appendPosition(ctx.variable_maps.getNewContent(ele.getNameAsString),
+            position = ele.getName.genPosition(ctx))
         else
           ele.getName.genCode(ctx, numsIntent, node)
 
@@ -343,10 +324,6 @@ trait EnrichedTrees extends utils.Common {
       /*formal paramters*/
       ctx.appendPosition("(", index = 0, parent = node)
       val parameters = node.getParameters
-//      parameters.foreach(p => {
-//        p.genCode(ctx, numsIntent)
-//        if (p != parameters.last) ctx.appendPosition(",", index = 1, parent = node)
-//      })
 
       for (i <- 0 until(parameters.size())){
         parameters.get(i).genCode(ctx, numsIntent)
@@ -362,10 +339,6 @@ trait EnrichedTrees extends utils.Common {
           ctx.appendPosition(ctx.ident_maps.getNewContent("throws"), index = -2, parent = node)
         else
           ctx.appendPosition("throws", index = -1, parent = node)
-//        node.getThrownExceptions.foreach(exp => {
-//          exp.genCode(ctx)
-//          if (exp != exceptions.last) ctx.appendPosition(",", index = -1, parent = node)
-//        })
 
         for (i <- 0 until(node.getThrownExceptions.size())){
           node.getThrownExceptions.get(i).genCode(ctx)
@@ -397,10 +370,6 @@ trait EnrichedTrees extends utils.Common {
       /*formal paramters*/
       ctx.appendPosition("(", index = 0, parent = node)
       val parameters = node.getParameters
-//      parameters.foreach(p => {
-//        p.genCode(ctx, numsIntent, node.getName)
-//        if (p != parameters.last) ctx.appendPosition(",", index = 1, parent = node)
-//      })
 
       for (i <- 0 until(parameters.size())){
         parameters.get(i).genCode(ctx, numsIntent, node.getName)
@@ -416,10 +385,6 @@ trait EnrichedTrees extends utils.Common {
           ctx.appendPosition(ctx.ident_maps.getNewContent("throws"), index = -3, parent = node)
         else
           ctx.appendPosition("throws", index = -3, parent = node)
-//        node.getThrownExceptions.foreach(exp => {
-//          exp.genCode(ctx, numsIntent, node.getName)
-//          if (exp != exceptions.last) ctx.appendPosition(",", index = -2, parent = node)
-//        })
 
         for (i <- 0 until(node.getThrownExceptions.size())){
           node.getThrownExceptions.get(i).genCode(ctx, numsIntent, node.getName)
@@ -693,10 +658,6 @@ trait EnrichedTrees extends utils.Common {
       ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("for") else "for", position = node.genPosition(ctx))
       ctx.appendPosition("(", index = 0, parent = node)
       val initial = node.getInitialization
-//      initial.foreach(init => {
-//        init.genCode(ctx, numsIntent, node)
-//        if (init != initial.last) ctx.appendPosition(",", index = 1, parent = node)
-//      })
 
       for (i <- 0 until(initial.size())){
         initial.get(i).genCode(ctx, numsIntent, node)
@@ -712,11 +673,6 @@ trait EnrichedTrees extends utils.Common {
       ctx.appendPosition(";", index = -3, parent = node)
 
       val update = node.getUpdate
-//      update.foreach(up => {
-//        up.genCode(ctx, numsIntent, node)
-//        if (up != update.last) ctx.appendPosition(",", index = -2, parent = node)
-//      })
-
 
       for (i <- 0 until(update.size())){
         update.get(i).genCode(ctx, numsIntent, node)
@@ -739,7 +695,6 @@ trait EnrichedTrees extends utils.Common {
       if (tgt != null) logger.debug(f"throw" + getUpArrow + getPath(node, tgt))
 
       ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("throw") else "throw", position = node.genPosition(ctx))
-//      ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("new") else "new", index = 0, parent = node)
       node.getExpression.genCode(ctx, numsIntent, node)
 
       if (node.getParentNode.isPresent && (node.getParentNode.get().isInstanceOf[MethodDeclaration] == false))
@@ -761,10 +716,6 @@ trait EnrichedTrees extends utils.Common {
       ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("try") else "try", position = node.genPosition(ctx))
       if (tryResources.size() != 0){
         ctx.appendPosition("(", index = 0, parent = node)
-//        tryResources.foreach(expr => {
-//          expr.genCode(ctx, numsIntent, node)
-//          if (expr != tryResources.last) ctx.appendPosition(",", index = 1, parent = node)
-//        })
 
         for (i <- 0 until(tryResources.size())){
           tryResources.get(i).genCode(ctx, numsIntent, node)
@@ -905,12 +856,6 @@ trait EnrichedTrees extends utils.Common {
 
       ctx.appendPosition("(", index = 0, parent = node)
 
-
-//      parameters.foreach(p => {
-//        p.genCode(ctx, numsIntent)
-//        if (p != parameters.last) ctx.appendPosition(",", index = 1, parent = node)
-//      })
-
       for (i <- 0 until(parameters.size())){
         parameters.get(i).genCode(ctx, numsIntent)
         if (i < parameters.size() - 1)
@@ -986,23 +931,16 @@ trait EnrichedTrees extends utils.Common {
       if (ctx.isAbstract) {
         val funcName = ctx.method_maps.getNewContent(node.getName.asString())
         ctx.appendPosition(funcName, position = node.getName.genPosition(ctx))
-      } else node.getName.genCode(ctx)
+      } else
+        node.getName.genCode(ctx)
 
       ctx.appendPosition("(", index = 0, parent = node)
-//      arguments.foreach(expr => {
-//        expr.genCode(ctx, numsIntent)
-//        if (expr != arguments.last) ctx.appendPosition(",", index = 1, parent = node)
-//      })
-
 
       for(i <- 0 until arguments.size()){
         arguments.get(i).genCode(ctx, numsIntent)
         if (i < arguments.size() - 1 )
           ctx.appendPosition(",", index = 1, parent = node)
       }
-
-
-
 
       ctx.appendPosition(")", index = 2, parent = node)
     }
@@ -1027,7 +965,6 @@ trait EnrichedTrees extends utils.Common {
 
       right.genCode(ctx, numsIntent)
 
-
     }
   }
 
@@ -1048,9 +985,10 @@ trait EnrichedTrees extends utils.Common {
   implicit class genNameExpr(node:NameExpr) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       if (ctx.isAbstract) {
-        ctx.appendPosition(ctx.variable_maps.getNewContent(node.getName.asString(), false), position = node.getName.genPosition(ctx))
-      } else node.getName.genCode(ctx, numsIntent, tgt)
-
+        ctx.appendPosition(ctx.variable_maps.getNewContent(node.getName.asString(), false),
+          position = node.getName.genPosition(ctx))
+      } else
+        node.getName.genCode(ctx, numsIntent, tgt)
     }
   }
 
@@ -1127,9 +1065,11 @@ trait EnrichedTrees extends utils.Common {
   implicit class genSwitchExpr(node:SwitchExpr) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("switch") else "switch", position = node.genPosition(ctx))
+
       ctx.appendPosition("(", index = 0, parent = node)
       node.getSelector.genCode(ctx)
       ctx.appendPosition(")", index = 1, parent = node)
+
       ctx.appendPosition("{", index = -3, parent = node)
 
       node.getEntries.foreach(_.genCode(ctx))
@@ -1150,11 +1090,6 @@ trait EnrichedTrees extends utils.Common {
 
         ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("case") else "case", position = node.genPosition(ctx))
 
-        //      lables.foreach(expr => {
-        //        expr.genCode(ctx)
-        //        if (expr != lables.last) ctx.appendPosition(",", index = 0, parent = node)
-        //      })
-
         for (i <- 0 until (lables.size())) {
           lables.get(i).genCode(ctx)
           if (i < lables.size() - 1)
@@ -1164,9 +1099,7 @@ trait EnrichedTrees extends utils.Common {
       }
       ctx.appendPosition(":", index = 1, parent = node)
 
-//      ctx.appendPosition("{", index = -3, parent = node)
       sts.foreach(_.genCode(ctx))
-//      ctx.appendPosition("}", index = -2, parent = node)
 
     }
   }
@@ -1266,10 +1199,6 @@ trait EnrichedTrees extends utils.Common {
       tp.genCode(ctx, numsIntent)
 
       ctx.appendPosition("(", index = 2, parent = node)
-//      arguments.foreach(expr =>{
-//        expr.genCode(ctx, numsIntent)
-//        if (expr != arguments.last) ctx.appendPosition(",", index = -3, parent = node)
-//      })
 
       for (i <- 0 until(arguments.size())){
         arguments.get(i).genCode(ctx, numsIntent)
@@ -1329,7 +1258,7 @@ trait EnrichedTrees extends utils.Common {
         node.getScope.genCode(ctx, numsIntent)
       } else {
         if (ctx.isAbstract) {
-          val scope_value = ctx.variable_maps.getNewContent(node.getScope.toString, false)
+          val scope_value = ctx.ident_maps.getNewContent(node.getScope.toString, false)
           ctx.appendPosition(scope_value, position = node.getScope.genPosition(ctx))
         } else
           node.getScope.genCode(ctx, numsIntent)
@@ -1338,7 +1267,11 @@ trait EnrichedTrees extends utils.Common {
 
       // filed
       if (ctx.isAbstract) {
-        val name = ctx.ident_maps.getNewContent(node.getName.asString())
+        val name = if (ctx.type_maps.contain(node.getName.asString()))
+          ctx.type_maps.getNewContent(node.getName.asString())
+        else
+          ctx.ident_maps.getNewContent(node.getName.asString())
+
         ctx.appendPosition(name, position = node.getName.genPosition(ctx))
       } else
         node.getName.genCode(ctx)
@@ -1355,10 +1288,6 @@ trait EnrichedTrees extends utils.Common {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
       val values = node.getValues
       ctx.appendPosition("{", index = 0, parent = node)
-//      values.foreach(ele => {
-//        ele.genCode(ctx, numsIntent)
-//        if (ele != values.last) ctx.appendPosition(",", index = 1, parent = node)
-//      })
 
       for (i <- 0 until(values.size())){
         values.get(i).genCode(ctx, numsIntent)
@@ -1400,7 +1329,13 @@ trait EnrichedTrees extends utils.Common {
 
   implicit class genSimpleName(node:SimpleName) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null):Unit = {
-      ctx.appendPosition(node.getIdentifier, position = node.genPosition(ctx))
+      val value = if (ctx.isAbstract) {
+        ctx.ident_maps.getNewContent(node.getIdentifier)
+      } else
+        node.getIdentifier
+
+      ctx.appendPosition(value, position = node.genPosition(ctx))
+
       if (tgt != null) logger.debug(f"[${node.getIdentifier}]" + getUpArrow + getPath(node, tgt) + getDownArrow + s"<${tgt.toString()}>")
     }
   }
@@ -1483,15 +1418,11 @@ trait EnrichedTrees extends utils.Common {
 
       if (ctx.isAbstract)
         ctx.appendPosition(ctx.type_maps.getNewContent(name.asString()), position = name.genPosition(ctx))
-      else name.genCode(ctx, numsIntent, tgt)
+      else
+        name.genCode(ctx, numsIntent, tgt)
 
       if (typeBound.size() != 0){
         ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("extends") else "extends", index = 1, parent = node)
-//        typeBound.foreach(bound => {
-//          bound.genCode(ctx, numsIntent, tgt)
-//          if (bound != typeBound.last) ctx.appendPosition("&", index = 2, parent = node)
-//        })
-
 
         for (i <- 0 until(typeBound.size())){
           typeBound.get(i).genCode(ctx, numsIntent, tgt)
@@ -1510,22 +1441,29 @@ trait EnrichedTrees extends utils.Common {
       val name = node.getName
       val tps = node.getTypeArguments
 
-      if (ctx.isAbstract) {
-        val value = (if (scope.isPresent) scope.get().asString() + "." else EmptyString) + name.asString()
-        ctx.appendPosition(ctx.type_maps.getNewContent(value), position = name.genPosition(ctx))
-      } else {
-        if (scope.isPresent) {
-          scope.get().genCode(ctx, numsIntent, tgt)
+      if (scope.isPresent) {
+        if (isScopeExpand(scope.get(), ctx)) {
+          scope.get().genCode(ctx, numsIntent)
+        } else {
+          if (ctx.isAbstract) {
+            ctx.appendPosition(ctx.type_maps.getNewContent(scope.get().asString()), position = name.genPosition(ctx))
+          } else {
+            scope.get().genCode(ctx, numsIntent)
+          }
           ctx.appendPosition(".", index = 0, parent = node)
         }
+      }
 
+      // Name
+      if (ctx.isAbstract) {
+        ctx.appendPosition(ctx.type_maps.getNewContent(name.asString()), position = name.genPosition(ctx))
+      } else {
         name.genCode(ctx, numsIntent, tgt)
       }
 
       if (tps.isPresent){
         ctx.appendPosition("<", index = 1, parent = node)
 
-//        tps.get().foreach(_.genCode(ctx, numsIntent, tgt))
         val typelist = tps.get()
         for (i <- 0 until typelist.size()){
           typelist.get(i).genCode(ctx, numsIntent, tgt)
@@ -1569,7 +1507,7 @@ trait EnrichedTrees extends utils.Common {
           qualifier.get().genCode(ctx, numsIntent)
         ctx.appendPosition(".", index = 0, parent = node)
       }
-      ctx.appendPosition(if (ctx.isAbstract) ctx.variable_maps.getNewContent(node.getIdentifier) else node.getIdentifier, position = node.genPosition(ctx))
+      ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent(node.getIdentifier) else node.getIdentifier, position = node.genPosition(ctx))
 
     }
   }
@@ -1626,12 +1564,12 @@ trait EnrichedTrees extends utils.Common {
     getAllScopePath(scope, allPaths)
 
 //    if (logger.isDebugEnabled) {
-    ////      val scope_name = getScopeNodeName(scope)
-    ////      for (elem <- allPaths) {
-    ////        val name = getScopeNodeName(elem)
-    ////        logger.debug(f"${scope_name} - ${name} ############## ${elem.getClass}")
-    ////      }
-    ////    }
+//      val scope_name = getScopeNodeName(scope)
+//      for (elem <- allPaths) {
+//        val name = getScopeNodeName(elem)
+//        logger.debug(f"${scope_name} - ${name} ############## ${elem.getClass}")
+//      }
+//    }
 
     /**
      * If scope is a format of method call, then we need to expand it,

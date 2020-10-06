@@ -46,7 +46,7 @@ class Count[K, V <: String](name:String, idioms:mutable.HashSet[String],
   def contain(key:K) = data.contains(key)
 
 
-  def getNewContent(key:K, using_udiom:Boolean=true) = {
+  def getNewContent(key:K, code_scope:Int=0) = {
 
     if (keywords.contains(key.toString) && ! exclude_keywords)
       key.asInstanceOf[V]

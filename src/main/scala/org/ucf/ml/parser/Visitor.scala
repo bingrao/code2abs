@@ -10,7 +10,7 @@ import com.github.javaparser.ast.{Node, PackageDeclaration}
 import com.github.javaparser.ast.`type`.Type
 import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.body.MethodDeclaration
-import com.github.javaparser.ast.expr.{MethodCallExpr, MethodReferenceExpr, NameExpr, SimpleName}
+import com.github.javaparser.ast.expr.{AssignExpr, MethodCallExpr, MethodReferenceExpr, NameExpr, SimpleName}
 
 import scala.collection.JavaConversions._
 import java.util.stream.Collectors
@@ -114,6 +114,12 @@ trait Visitor extends EnrichedTrees {
     cu.findAll(classOf[SimpleName])
       .stream()
       .collect(Collectors.toList[SimpleName]())
+      .toList
+
+  def getAssignExpr(cu:CompilationUnit) =
+    cu.findAll(classOf[AssignExpr])
+      .stream()
+      .collect(Collectors.toList[AssignExpr]())
       .toList
 
   @deprecated

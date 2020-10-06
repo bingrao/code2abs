@@ -16,6 +16,11 @@ import scala.collection.mutable.{HashMap, ListBuffer}
  */
 class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) extends Common {
 
+//  import java.io._
+//  val pw = new PrintWriter(new File("hello.txt" ))
+//  idioms.foreach(ele => pw.write(ele+"\n"))
+//  pw.close()
+
   case class AbstractContext(target:Value) {
     private val token_abstract = new ListBuffer[String]
     private val token_position = new ListBuffer[PositionEmbeddingType]
@@ -156,7 +161,7 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
   val long_maps = new Count[String, String]("LONG", idioms, true)
   val double_maps = new Count[String, String]("DOUBEL", idioms, true)
 
-  val type_maps = new Count[String, String]("TYPE", idioms, true)
+  val type_maps = new Count[String, String]("TYPE", idioms, false)
   val method_maps = new Count[String, String]("METHOD", idioms, true)
   val variable_maps = new Count[String, String]("VAR", idioms, true)
 

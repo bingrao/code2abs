@@ -23,15 +23,17 @@ class TestAbstract extends TestUtils {
       """
         |package org.ucf.java;
         |public class JavaApp {
+        |    int ad = 3;
         |    public void hello(String input) {
-        |        Int c = a + b;
+        |        int ad = 0;
+        |        Integer bb = ad + bb;
         |    }
         |}
         |""".stripMargin
-//    get_abstract_code(inputClass, CLASS, false)
+    get_abstract_code(inputClass, CLASS, false)
   }
 
-  @Test def testAbstractFile_68(): Unit ={
+  @Test def testAbstractFile_68(): Unit = {
     val input = "data/small/raw/fixed/1.java"
     get_abstract_code(input, METHOD, true)
   }

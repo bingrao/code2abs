@@ -10,7 +10,7 @@ trait TestUtils extends parser.JavaParser with utils.Common {
   private val idioms = readIdioms()
   val ctx = new Context(idioms)
 
-  def get_abstract_code(sourcePath:String, granularity:Value, isFile:Boolean = true) = {
+  def get_abstract_code(sourcePath:String, granularity:Value, isFile:Boolean = true): Unit = {
 
     ctx.setCurrentMode(SOURCE)
     ctx.setGranularity(granularity)
@@ -26,23 +26,23 @@ trait TestUtils extends parser.JavaParser with utils.Common {
     /**Traverse AST to gen abstract code**/
     genAbstractCode(ctx, cu)
 
-    logger.info(s"Position nums ${ctx.positionalEmbedding.size}")
-
-    ctx.positionalEmbedding.foreach{case (key, value) => {
-
-      val name = if (key.isInstanceOf[SimpleName])
-        key.asInstanceOf[SimpleName].asString()
-      else if (key.isInstanceOf[NameExpr])
-        key.asInstanceOf[NameExpr].getNameAsString
-      else EmptyString
-      println("%-40s %s".format(key.getClass.getName.split("\\.").last + s"[${name}]", value.toString()))
-    }}
+//    logger.info(s"Position nums ${ctx.positionalEmbedding.size}")
+//
+//    ctx.positionalEmbedding.foreach{case (key, value) =>
+//
+//      val name = if (key.isInstanceOf[SimpleName])
+//        key.asInstanceOf[SimpleName].asString()
+//      else if (key.isInstanceOf[NameExpr])
+//        key.asInstanceOf[NameExpr].getNameAsString
+//      else EmptyString
+//      println("%-40s %s".format(key.getClass.getName.split("\\.").last + s"[${name}]", value.toString()))
+//    }
 
     println(cu)
     println("***************************************************")
     println(ctx.get_buggy_abstract())
 
-    val a = getComplationUnit(ctx.get_buggy_abstract(), METHOD, false)
+    val a = getComplationUnit(ctx.get_buggy_abstract(), granularity, false)
 
 
     println("***************************************************")
@@ -59,7 +59,7 @@ trait TestUtils extends parser.JavaParser with utils.Common {
 
     ctx.setCurrentMode(mode)
 
-    if (logger.isDebugEnabled) ctx.append(s"[${mode}-${new File(inputPath).getName}]\t")
+    if (logger.isDebugEnabled) ctx.append(s"[$mode-${new File(inputPath).getName}]\t")
 
     val cu = getComplationUnit(inputPath, granularity)
 

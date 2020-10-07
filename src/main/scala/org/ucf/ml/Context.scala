@@ -130,7 +130,7 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
   }
 
 
-  private var isNewLine = true
+  private var isNewLine = false
   def setNewLine(value:Boolean) = this.isNewLine = value
 
   def appendNewLine(level:Int=0):Unit = this.getCurrentMode match {

@@ -139,7 +139,7 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
   }
 
 
-  val with_scope:Boolean = true
+  val with_scope:Boolean = false
 
   /* Generating abstract code */
   var isAbstract = true

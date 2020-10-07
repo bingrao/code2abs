@@ -913,23 +913,39 @@ trait EnrichedTrees extends utils.Common {
       val arguments = node.getArguments
 
       if (scope.isPresent) {
-        if (isScopeExpand(scope.get(), ctx)){
-          scope.get().genCode(ctx, numsIntent, tgt, code_scope)
-        } else {
-          if (ctx.isAbstract) {
-            val scope_value = ctx.variable_maps.getNewContent(scope.get().toString, code_scope)
-            ctx.appendPosition(scope_value, position = scope.get().genPosition(ctx))
-          } else
+        val full_name = scope.get().toString + "." + node.getName.asString()
+        if (ctx.ident_maps.getIdioms.contains(full_name) && ctx.isAbstract)
+          ctx.appendPosition(full_name, index = 0, parent = node)
+        else {
+          if (isScopeExpand(scope.get(), ctx)) {
             scope.get().genCode(ctx, numsIntent, tgt, code_scope)
+          } else {
+            if (ctx.isAbstract) {
+              val scope_value = if (ctx.variable_maps.contain(scope.get().toString, code_scope))
+                ctx.variable_maps.get_match_content(scope.get().toString, code_scope)
+              else
+                ctx.ident_maps.getNewContent(scope.get().toString, code_scope)
+              ctx.appendPosition(scope_value, position = scope.get().genPosition(ctx))
+            } else
+              scope.get().genCode(ctx, numsIntent, tgt, code_scope)
+          }
+          ctx.appendPosition(".", index = 0, parent = node)
+
+          if (ctx.isAbstract) {
+            val funcName = ctx.method_maps.getNewContent(node.getName.asString(), code_scope)
+            ctx.appendPosition(funcName, position = node.getName.genPosition(ctx))
+          } else
+            node.getName.genCode(ctx, numsIntent, tgt, code_scope)
         }
-        ctx.appendPosition(".", index = 0, parent = node)
+      } else {
+        if (ctx.isAbstract) {
+          val funcName = ctx.method_maps.getNewContent(node.getName.asString(), code_scope)
+          ctx.appendPosition(funcName, position = node.getName.genPosition(ctx))
+        } else
+          node.getName.genCode(ctx, numsIntent, tgt, code_scope)
       }
 
-      if (ctx.isAbstract) {
-        val funcName = ctx.method_maps.getNewContent(node.getName.asString(), code_scope)
-        ctx.appendPosition(funcName, position = node.getName.genPosition(ctx))
-      } else
-        node.getName.genCode(ctx, numsIntent, tgt, code_scope)
+
 
       ctx.appendPosition("(", index = 0, parent = node)
 
@@ -984,7 +1000,7 @@ trait EnrichedTrees extends utils.Common {
       if (ctx.isAbstract) {
         val name = node.getName.asString()
         val value = if (ctx.variable_maps.contain(name, code_scope))
-          ctx.variable_maps.getNewContent(name, code_scope)
+          ctx.variable_maps.get_match_content(name, code_scope)
         else
           ctx.ident_maps.getNewContent(name, code_scope)
         ctx.appendPosition(value, position = node.getName.genPosition(ctx))
@@ -1254,27 +1270,23 @@ trait EnrichedTrees extends utils.Common {
   implicit class genFieldAccessExpr(node:FieldAccessExpr) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null, code_scope:Int=0):Unit = {
 
-      if (isScopeExpand(node.getScope, ctx)){
-        node.getScope.genCode(ctx, numsIntent, tgt, code_scope)
-      } else {
-        if (ctx.isAbstract) {
-          val scope_value = ctx.ident_maps.getNewContent(node.getScope.toString, code_scope)
-          ctx.appendPosition(scope_value, position = node.getScope.genPosition(ctx))
-        } else
+      val full_name = node.toString
+      if (ctx.ident_maps.getIdioms.contains(full_name) && ctx.isAbstract)
+        ctx.appendPosition(full_name, index = 0, parent = node)
+      else {
+        if (isScopeExpand(node.getScope, ctx)) {
           node.getScope.genCode(ctx, numsIntent, tgt, code_scope)
-      }
-      ctx.appendPosition(".", index = 0, parent = node)
+        } else {
+          if (ctx.isAbstract) {
+            val scope_value = ctx.ident_maps.getNewContent(node.getScope.toString, code_scope)
+            ctx.appendPosition(scope_value, position = node.getScope.genPosition(ctx))
+          } else
+            node.getScope.genCode(ctx, numsIntent, tgt, code_scope)
+        }
+        ctx.appendPosition(".", index = 0, parent = node)
 
-      // filed
-      if (ctx.isAbstract) {
-        val name = if (ctx.type_maps.contain(node.getName.asString()))
-          ctx.type_maps.getNewContent(node.getName.asString(), code_scope)
-        else
-          ctx.ident_maps.getNewContent(node.getName.asString(), code_scope)
-
-        ctx.appendPosition(name, position = node.getName.genPosition(ctx))
-      } else
         node.getName.genCode(ctx, numsIntent, tgt, code_scope)
+      }
     }
   }
 
@@ -1409,6 +1421,7 @@ trait EnrichedTrees extends utils.Common {
       //TODO, need more details about
       val origin = node.getOrigin
       val comType = node.getComponentType
+
       comType.genCode(ctx, numsIntent, tgt, code_scope)
       ctx.appendPosition("[", index = 0, parent = node)
       ctx.appendPosition("]", index = 1, parent = node)
@@ -1448,23 +1461,34 @@ trait EnrichedTrees extends utils.Common {
       val tps = node.getTypeArguments
 
       if (scope.isPresent) {
-        if (isScopeExpand(scope.get(), ctx)) {
-          scope.get().genCode(ctx, numsIntent, tgt, code_scope)
-        } else {
-          if (ctx.isAbstract) {
-            ctx.appendPosition(ctx.type_maps.getNewContent(scope.get().asString(), code_scope), position = name.genPosition(ctx))
-          } else {
+        val full_name = scope.get().asString() + "." + name.asString()
+        if (ctx.ident_maps.getIdioms.contains(full_name) && ctx.isAbstract)
+          ctx.appendPosition(full_name, index = 0, parent = node)
+        else {
+          if (isScopeExpand(scope.get(), ctx)) {
             scope.get().genCode(ctx, numsIntent, tgt, code_scope)
+          } else {
+            if (ctx.isAbstract) {
+              ctx.appendPosition(ctx.ident_maps.getNewContent(scope.get().asString(), code_scope), position = name.genPosition(ctx))
+            } else {
+              scope.get().genCode(ctx, numsIntent, tgt, code_scope)
+            }
           }
           ctx.appendPosition(".", index = 0, parent = node)
+          // Name
+          if (ctx.isAbstract) {
+            ctx.appendPosition(ctx.type_maps.getNewContent(name.asString(), code_scope), position = name.genPosition(ctx))
+          } else {
+            name.genCode(ctx, numsIntent, tgt, code_scope)
+          }
         }
-      }
-
-      // Name
-      if (ctx.isAbstract) {
-        ctx.appendPosition(ctx.type_maps.getNewContent(name.asString(), code_scope), position = name.genPosition(ctx))
       } else {
-        name.genCode(ctx, numsIntent, tgt, code_scope)
+        // Name
+        if (ctx.isAbstract) {
+          ctx.appendPosition(ctx.type_maps.getNewContent(name.asString(), code_scope), position = name.genPosition(ctx))
+        } else {
+          name.genCode(ctx, numsIntent, tgt, code_scope)
+        }
       }
 
       if (tps.isPresent){
@@ -1568,6 +1592,10 @@ trait EnrichedTrees extends utils.Common {
   def isScopeExpand(scope:Node, ctx:Context):Boolean = {
     val allPaths = new ListBuffer[Node]
     getAllScopePath(scope, allPaths)
+
+    if (ctx.ident_maps.getIdioms.contains(scope.toString) ||
+      ctx.ident_maps.getKeywords.contains(scope.toString()))
+      return true
 
 //    if (logger.isDebugEnabled) {
 //      val scope_name = getScopeNodeName(scope)

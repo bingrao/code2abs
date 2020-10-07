@@ -25,11 +25,17 @@ class TestAbstract extends TestUtils {
         |public class JavaApp {
         |    int bb = 3;
         |    public void hello(String input) {
-        |        int a =3, b = 4, i = 0;
-        |        int ad = 0;
-        |        Integer bb = ad + 1;
-        |        for(int i = 0; i < 10; i++)
-        |           bb = bb + 1;
+        |        if (bb < 5) {
+        |           int cc = 3;
+        |        } else {
+        |           dd = bb + 5;
+        |        }
+        |
+        |        int a =3, b, i = ed;
+        |        int ad = 7;
+        |        Integer bb = ad + cc;
+        |        for(i = 0; i < 10; i++)
+        |           bb = bb + ed;
         |    }
         |}
         |""".stripMargin

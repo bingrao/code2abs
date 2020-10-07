@@ -27,6 +27,9 @@ class Count[K, V <: String](name:String, idioms:mutable.HashSet[String],
   idioms.--=(keywords)
 
 
+  def getIdioms = this.idioms
+  def getKeywords = this.keywords
+
   def getPrefix = this.prefix
   private def getNewValue = (f"${name}_${this.getIncCount}").asInstanceOf[V]
 
@@ -56,24 +59,46 @@ class Count[K, V <: String](name:String, idioms:mutable.HashSet[String],
     scopes.max <= scope
   } else false
 
-  def getNewContent(key:K, code_scope:Int) = {
-
-    def get_best_match(values:ListBuffer[V], scope:Int) = {
-      val elements = values.map(v => {
+  def get_match_content(key:K, scope:Int, isNew:Boolean=false) = {
+    val reg = if (isNew) {
+      val value = this.getNewValue
+      this.update(key, s"${value}_${scope}".asInstanceOf[V])
+      value
+    } else {
+      val values = get(key)
+      val elements = values.map( v => {
         val diff_scope = scope - v.split("_").last.toInt
         (v, diff_scope)
       }).sortBy(_._2).head._1.split("_")
 
+      if (!name.toLowerCase.contains("var")) {
+        val update_value = s"${elements.dropRight(1).mkString("_")}_${scope}".asInstanceOf[V]
+        if (!values.contains(update_value))
+          this.update(key, update_value)
+      }
 
-      if (elements(1).toInt == 0) elements(0) else elements.dropRight(1).mkString("_")
+      if (elements(1).toInt == 0)
+        elements(0)
+      else
+        elements.dropRight(1).mkString("_")
     }
 
+    if (with_scope)
+      s"${reg}[${scope}]"
+    else
+      reg
+  }
+
+  def getNewContent(key:K, code_scope:Int) = {
     val reg = if (keywords.contains(key.toString) && ! exclude_keywords) {
       // the key is a keyword of java
       key.asInstanceOf[V]
-    } else if (this.contain(key, code_scope)){
+    } else if (this.contain(key)) {
       // If there exists
-      get_best_match(this.get(key), code_scope)
+      // 1. if it is a new variable declare, then create a new variable name
+      // 2. otherwise, retrieve the best match from the list
+      get_match_content(key, code_scope, name.toLowerCase.contains("var"))
+
     } else if (idioms.contains(key.toString)) {
       // the key is a idiom
       val value = key.asInstanceOf[V]
@@ -92,7 +117,7 @@ class Count[K, V <: String](name:String, idioms:mutable.HashSet[String],
   }
 
   def dump_data(path:String=null) = if (!data.isEmpty) {
-    val dump = data.toList.map{case (k,v) => f"${name}\t\t\t\t: ${k} -> [${v.mkString(",")}]"}.mkString("\n")
+    val dump = data.toList.map{case (k,v) => f"${name}\t\t\t\t: ${k} -> [${v.mkString(", ")}]"}.mkString("\n")
 
 //    val dump = data.toList.sortBy(_._2.split("_").last.toInt)
 //      .map{case (k,v) => f"${name}\t${v}\t${k}"}.mkString("\n")

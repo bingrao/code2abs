@@ -1,3 +1,5 @@
-public void setText(java.lang.String text) {
-        this.text = text;
+@java.lang.Override
+public void run() {
+        simonAlam.SimonScreenAlam.label.setText("");
+        nextRound();
         }

@@ -176,6 +176,7 @@ java.lang.System.out.println
 java.lang.Thread
 java.lang.Throwable
 java.lang.Void
+java.lang
 java.net.URL
 java.util.ArrayList
 java.util.Arrays.asList
@@ -198,6 +199,7 @@ java.util.regex.Matcher
 java.util.Scanner
 java.util.Set
 java.util.Vector
+java.util
 k
 key
 keys

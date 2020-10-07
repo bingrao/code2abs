@@ -23,10 +23,13 @@ class TestAbstract extends TestUtils {
       """
         |package org.ucf.java;
         |public class JavaApp {
-        |    int ad = 3;
+        |    int bb = 3;
         |    public void hello(String input) {
+        |        int a =3, b = 4, i = 0;
         |        int ad = 0;
-        |        Integer bb = ad + bb;
+        |        Integer bb = ad + 1;
+        |        for(int i = 0; i < 10; i++)
+        |           bb = bb + 1;
         |    }
         |}
         |""".stripMargin

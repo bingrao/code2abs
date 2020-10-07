@@ -130,7 +130,7 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
   }
 
 
-  private var isNewLine = false
+  private var isNewLine = true
   def setNewLine(value:Boolean) = this.isNewLine = value
 
   def appendNewLine(level:Int=0):Unit = this.getCurrentMode match {
@@ -138,6 +138,8 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
     case TARGET => if (isNewLine) this.fixed_abstract.append_abstract("\n")
   }
 
+
+  val with_scope:Boolean = true
 
   /* Generating abstract code */
   var isAbstract = true
@@ -151,19 +153,19 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
   /********************* set up and look up statistical data ***************************/
 
   // Java keywords and not appear identifiers in the context
-  val ident_maps = new Count[String, String]("Ident", idioms)
+  val ident_maps = new Count[String, String]("Ident", idioms, with_scope=with_scope)
 
-  val textBlock_maps = new Count[String, String]("TEXT", idioms)
-  val string_maps = new Count[String, String]("STRING", idioms, true)
-  val char_maps = new Count[String, String]("CHAR", idioms, true)
-  val int_maps = new Count[String, String]("INT", idioms, true)
-  val float_maps = new Count[String, String]("FLOAT", idioms, true)
-  val long_maps = new Count[String, String]("LONG", idioms, true)
-  val double_maps = new Count[String, String]("DOUBEL", idioms, true)
+  val textBlock_maps = new Count[String, String]("TEXT", idioms, with_scope=with_scope)
+  val string_maps = new Count[String, String]("STRING", idioms, true, with_scope=with_scope)
+  val char_maps = new Count[String, String]("CHAR", idioms, true, with_scope=with_scope)
+  val int_maps = new Count[String, String]("INT", idioms, true, with_scope=with_scope)
+  val float_maps = new Count[String, String]("FLOAT", idioms, true, with_scope=with_scope)
+  val long_maps = new Count[String, String]("LONG", idioms, true, with_scope=with_scope)
+  val double_maps = new Count[String, String]("DOUBEL", idioms, true, with_scope=with_scope)
 
-  val type_maps = new Count[String, String]("TYPE", idioms, false)
-  val method_maps = new Count[String, String]("METHOD", idioms, true)
-  val variable_maps = new Count[String, String]("VAR", idioms, true)
+  val type_maps = new Count[String, String]("TYPE", idioms, false, with_scope=with_scope)
+  val method_maps = new Count[String, String]("METHOD", idioms, true, with_scope=with_scope)
+  val variable_maps = new Count[String, String]("VAR", idioms, true, with_scope=with_scope)
 
 
   ///////////////////////////////////////////////////////////////////////////////////////

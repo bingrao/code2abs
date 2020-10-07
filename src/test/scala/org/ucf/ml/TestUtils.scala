@@ -42,7 +42,7 @@ trait TestUtils extends parser.JavaParser with utils.Common {
     println("***************************************************")
     println(ctx.get_buggy_abstract())
 
-    val a = getComplationUnit(ctx.get_buggy_abstract(), granularity, false)
+//    val a = getComplationUnit(ctx.get_buggy_abstract(), granularity, false)
 
 
     println("***************************************************")

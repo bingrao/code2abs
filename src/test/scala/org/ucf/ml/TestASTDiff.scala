@@ -3,10 +3,13 @@ package org.ucf.ml
  * @author
  */
 import java.io.File
+import java.nio.file.FileSystem
 
 import gumtree.spoon.AstComparator
 import gumtree.spoon.builder.SpoonGumTreeBuilder
 import org.junit.Test
+
+import scala.collection.mutable.ListBuffer
 import scala.io.Source
 
 class TestASTDiff extends TestUtils {
@@ -56,28 +59,60 @@ class TestASTDiff extends TestUtils {
 
 
 
-
-  @Test def testGeneratedCode():Unit = {
-    val input = "data/small/processed/fixed.txt"
+  def _test(input:File) = {
     var cnt = 1
+    var fail_cnt = 0
+    var succ_cnt = 0
     val source = Source.fromFile(input)
     for (line <- source.getLines()){
       try {
         val cu = getComplationUnit(line, METHOD, false)
-//        if (cu != None)
-//          logger.error(f"[${cnt}] Successfully")
+        succ_cnt = succ_cnt + 1
+        //        if (cu != None)
+        //          logger.error(f"[${cnt}] Successfully")
       } catch {
         case e: Exception => {
-          logger.info(f"[${cnt}] Failed: ${line}")
-//          logger.info(e.getMessage + "\n\n")
+          //          logger.info(f"[${cnt}] Failed: ${line}")
+          fail_cnt = fail_cnt + 1
+          //          logger.info(e.getMessage + "\n\n")
         }
       } finally {
         cnt = cnt + 1
       }
     }
 
-    logger.info(s"[${cnt}] - Susscessfully - The input file ${input}")
+//    logger.info(s"Total [${cnt}], succecced [${succ_cnt}], faled [${fail_cnt}]-${input}")
     source.close()
+    List(cnt, succ_cnt, fail_cnt)
   }
+
+
+  @Test def testGeneratedCode():Unit = {
+    val buggy_path = "data/small/processed/buggy.txt"
+    val fixed_path = "data/small/processed/fixed.txt"
+
+    _test(new File(buggy_path))
+    _test(new File(fixed_path))
+  }
+
+  @Test def testGeneratedCodeAll():Unit = {
+
+    def recursiveListFiles(f: File): Array[File] = {
+      val these = f.listFiles
+      these ++ these.filter(_.isDirectory).flatMap(recursiveListFiles)
+    }
+
+    val data_dir = "data/small/processed/reviews"
+    val d = new File(data_dir)
+    val datasets = recursiveListFiles(d).filter(file => file.isFile && !file.getName.contains("vocab"))
+    val results = ListBuffer[String]()
+
+    datasets.foreach(dataset => {
+      val name = dataset.toString.split("\\\\").drop(4).mkString("\t")
+      val count = _test(dataset).mkString("\t")
+      println(name + "\t" + count)
+    })
+  }
+
 
 }

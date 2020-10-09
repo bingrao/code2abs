@@ -15,7 +15,7 @@ object App extends utils.Common {
   def main(args: Array[String]): Unit = {
 
     if (args.size == 0) {
-      logger.error("Please specify configuration path ...")
+      logger.info("Please specify configuration path ...")
       System.exit(-1)
     }
 
@@ -33,6 +33,23 @@ object App extends utils.Common {
         val tgt = args(2)
         val javaPaser = new parser.JavaParser
         javaPaser.getASTDiffCount(src, tgt, granularity = METHOD, isFile = false)
+        1
+      }
+      case "sequencer" => {
+        assert(args.size == 6)
+        val src_path = args(1)
+        val tgt_path = args(2)
+        val output_dir = args(3)
+        val idioms_path = args(4)
+        val max_length = args(5).toInt
+        logger.info("Generate SequenceR datasets ...")
+        val javaPaser = new parser.JavaParser
+        javaPaser.genSequencerData(src_path, tgt_path, output_dir, idioms_path, max_length)
+        1
+      }
+      case _ => {
+        logger.info(s"The input does not match: ${args}")
+        -1
       }
     }
     System.exit(exit_code)

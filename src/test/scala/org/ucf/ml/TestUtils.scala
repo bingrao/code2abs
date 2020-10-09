@@ -7,7 +7,7 @@ import com.github.javaparser.ast.expr.{NameExpr, SimpleName}
 
 trait TestUtils extends parser.JavaParser with utils.Common {
   // Load data idioms
-  private val idioms = readIdioms()
+  val idioms = readIdioms()
   val ctx = new Context(idioms)
 
   def get_abstract_code(sourcePath:String, granularity:Value, isFile:Boolean = true): Unit = {
@@ -55,16 +55,16 @@ trait TestUtils extends parser.JavaParser with utils.Common {
 
 
 
-  def single_abstract_task(inputPath:String, mode:Value, granularity:Value = METHOD) = {
+  def single_abstract_task(inputPath:String, mode:Value, granularity:Value = METHOD, isFile:Boolean=true) = {
 
     ctx.setCurrentMode(mode)
 
     if (logger.isDebugEnabled) ctx.append(s"[$mode-${new File(inputPath).getName}]\t")
 
-    val cu = getComplationUnit(inputPath, granularity)
+    val cu = getComplationUnit(inputPath, granularity, isFile)
 
-    /**Traverse AST to generate corresponding node's positional embedding**/
-    genPositionEmbedding(ctx, cu)
+//    /**Traverse AST to generate corresponding node's positional embedding**/
+//    genPositionEmbedding(ctx, cu)
 
     /**Traverse AST to gen abstract code**/
     genAbstractCode(ctx, cu)
@@ -78,13 +78,16 @@ trait TestUtils extends parser.JavaParser with utils.Common {
     }
   }
 
-  def single_task(buggyPath:String, fixedPath:String, last:Boolean=false) = {
+  def single_task(buggyPath:String, fixedPath:String, isFile:Boolean=false) = {
 
     if ((logger.isDebugEnabled) && (new File(buggyPath).getName != new File(fixedPath).getName)) {
       logger.error(s"[Input]-${buggyPath} != ${fixedPath}")
     }
-    single_abstract_task(buggyPath, SOURCE)
-    single_abstract_task(fixedPath, TARGET)
+    single_abstract_task(buggyPath, SOURCE, METHOD, isFile)
+    single_abstract_task(fixedPath, TARGET, METHOD, isFile)
+    val buggy = ctx.get_buggy_abstract()
+    val fixed = ctx.get_fixed_abstract()
+    (buggy, fixed)
   }
 
 

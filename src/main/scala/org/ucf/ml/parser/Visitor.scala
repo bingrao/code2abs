@@ -2,14 +2,13 @@ package org.ucf.ml
 package parser
 
 
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration
+import com.github.javaparser.ast.body.{ClassOrInterfaceDeclaration, MethodDeclaration, VariableDeclarator}
 import com.github.javaparser.ast.visitor.{TreeVisitor, VoidVisitorAdapter}
 
 import scala.collection.mutable.ListBuffer
 import com.github.javaparser.ast.{Node, PackageDeclaration}
 import com.github.javaparser.ast.`type`.Type
 import com.github.javaparser.ast.CompilationUnit
-import com.github.javaparser.ast.body.MethodDeclaration
 import com.github.javaparser.ast.expr.{AssignExpr, MethodCallExpr, MethodReferenceExpr, NameExpr, SimpleName}
 
 import scala.collection.JavaConversions._
@@ -40,6 +39,14 @@ trait Visitor extends EnrichedTrees {
           .getAllAncestors
           .foreach(tp => logger.info(s"Ancestor ${tp.describe()}"))
       }
+    }
+  }
+
+
+  case class VariableDecl() extends VoidVisitorAdapter[ListBuffer[String]] {
+    override def visit(md:VariableDeclarator, c:ListBuffer[String]): Unit = {
+      c.+=(md.getNameAsString)
+      super.visit(md,c)
     }
   }
 
@@ -114,6 +121,12 @@ trait Visitor extends EnrichedTrees {
     cu.findAll(classOf[SimpleName])
       .stream()
       .collect(Collectors.toList[SimpleName]())
+      .toList
+
+  def getVariableDeclarator(cu:CompilationUnit) =
+    cu.findAll(classOf[VariableDeclarator])
+      .stream()
+      .collect(Collectors.toList[VariableDeclarator]())
       .toList
 
   def getAssignExpr(cu:CompilationUnit) =

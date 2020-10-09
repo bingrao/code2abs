@@ -4,9 +4,14 @@ package parser
 
 import com.github.javaparser.{JavaToken, StaticJavaParser}
 import com.github.javaparser.ast.CompilationUnit
+import com.github.javaparser.printer.PrettyPrinterConfiguration
 
 import scala.collection.JavaConversions._
 import gumtree.spoon.AstComparator
+
+import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
+import scala.io.Source
 
 
 class JavaParser extends Visitor  {
@@ -90,6 +95,98 @@ class JavaParser extends Visitor  {
 
     context.get_buggy_abstract()
   }
+
+
+  def genSequencerData(src_path:String,
+                       tgt_path:String,
+                       output_dir:String,
+                       idioms_path:String,
+                       max_length:Int = 2400): Unit = {
+    val src_source = Source.fromFile(src_path).getLines()
+    val tgt_source = Source.fromFile(tgt_path).getLines()
+    var cnt = 1
+    var fail_cnt = 0
+    var succ_cnt = 0
+    var line_nums = 0
+    var find_nums = 0
+    val idioms = readIdioms(idioms_path)
+
+    val buggy = ListBuffer[String]()
+    val fixed = ListBuffer[String]()
+
+    val config = new PrettyPrinterConfiguration()
+    config.setEndOfLineCharacter("")
+    config.setIndentSize(1)
+    config.setTabWidth(1)
+
+    def _task(ctx:Context, cu:CompilationUnit, mode:Value) = {
+      ctx.setCurrentMode(mode)
+      genAbstractCode(ctx, cu)
+    }
+
+    for ((src, tgt) <- src_source.zip(tgt_source)) {
+      line_nums = line_nums + 1
+      if (src.contains("<START_BUG>") && src.contains("<END_BUG>") && src.size < max_length) {
+        try {
+          val new_source = src.replace("<START_BUG>", "int START_BUG = 0;")
+            .replace("<END_BUG>", "int END_BUG = 0;")
+
+          val cu = getComplationUnit(new_source, CLASS, false)
+
+          val method = getMethodDecl(cu).filter(m => {
+            val names = ListBuffer[String]()
+            VariableDecl().visit(m, names)
+            names.contains("START_BUG")
+          })
+
+          method.foreach(m => {
+            val src = m.toString(config).replace("int START_BUG = 0;", "<START_BUG>")
+              .replace("int END_BUG = 0;", "<END_BUG>")
+
+            val src_list = src.split(" ")
+
+            val start_index = src_list.indexOf("<START_BUG>")
+            val end_index = src_list.indexOf("<END_BUG>")
+
+            val src_first = src_list.take(start_index)
+            val src_last = src_list.takeRight(src_list.size - end_index - 1)
+
+            val tgt_list = tgt.split(" ")
+
+            val new_source = src.replace("<START_BUG>", "").replace("<END_BUG>", "")
+            val new_target = src_first.++(tgt_list).++(src_last).mkString(" ")
+
+            val src_cu = getComplationUnit(new_source, METHOD, false)
+            val tgt_cu = getComplationUnit(new_target, METHOD, false)
+
+
+            val context = new Context(idioms = idioms, METHOD)
+            _task(context, src_cu, SOURCE)
+            _task(context, tgt_cu, TARGET)
+
+            buggy.append(context.get_buggy_abstract())
+            fixed.append(context.get_fixed_abstract())
+            find_nums = find_nums + 1
+
+          })
+          succ_cnt = succ_cnt + 1
+        } catch {
+          case e: Exception => {
+            fail_cnt = fail_cnt + 1
+          }
+        } finally {
+          cnt = cnt + 1
+        }
+      }
+    }
+    logger.info(s"Total [${line_nums}], succecced [${succ_cnt}], faled [${fail_cnt}], find [${find_nums}]")
+
+    logger.info(s"Buggy code: ${buggy.size}, Fixed code: ${fixed.size}")
+
+    write(s"${output_dir}/buggy.txt", buggy.mkString("\n"))
+    write(s"${output_dir}/fixed.txt", fixed.mkString("\n"))
+  }
+
 
   /******************************************  [[APIs for Python Call]] **********************************************/
   /**

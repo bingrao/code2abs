@@ -8,19 +8,19 @@ import java.util.concurrent.{ExecutorService, Executors}
 import org.ucf.ml.utils.Config
 
 import scala.collection.JavaConversions._
+import net.sourceforge.argparse4j.inf.{Namespace => ConfigNamespace}
 
 /**
  * https://dzone.com/articles/java-concurrency-multi-threading-with-executorserv
  * https://www.baeldung.com/java-executor-wait-for-threads
- * @param configPath
  */
-class Master (configPath:String = "src/main/resources/default_application.conf") extends utils.Common {
+class Master (config:ConfigNamespace) extends utils.Common {
 
   /* Load configurations from a file*/
-  val config = new Config(configPath)
+//  val config = new Config(configPath)
   def getConfig = this.config
-  private val nums_worker = this.getConfig.getNumsWorker
-  private val isParallel = this.getConfig.getIsParallel
+  private val nums_worker = config.getInt("nums_worker")
+  private val isParallel = nums_worker > 1
   private var pools: ExecutorService = null
 
   /* Submit workers to executors and start them*/
@@ -28,11 +28,11 @@ class Master (configPath:String = "src/main/resources/default_application.conf")
     try {
 
       // Load data idioms
-      val project_idioms = readIdioms(getConfig.getIdiomsPath)
+      val project_idioms = readIdioms(getConfig.getString("idioms_path"))
 
       /* Load buggy and target files, and save their path as a list of string*/
-      val (buggy_files, fixed_files) = loadAndCheckData(getConfig.getRawBuggyFilesDir,
-        getConfig.getRawFixedFilesDir)
+      val (buggy_files, fixed_files) = loadAndCheckData(getConfig.getString("buggy_path"),
+        getConfig.getString("fixed_path"))
 
 
       val total_files_nums = math.min(buggy_files.size, fixed_files.size)
@@ -147,19 +147,19 @@ class Master (configPath:String = "src/main/resources/default_application.conf")
 //        }
 //      }
 
-      if (!config.getIsConcatPosition) {
-        write(getConfig.getOutputBuggyDir + "total/buggy.txt", buggy_abstract.mkString("\n"))
-        write(getConfig.getOutputBuggyDir + "total/fixed.txt", fixed_abstract.mkString("\n"))
+      if (!config.getBoolean("output_position")) {
+        write(getConfig.getString("output_dir") + "total/buggy.txt", buggy_abstract.mkString("\n"))
+        write(getConfig.getString("output_dir") + "total/fixed.txt", fixed_abstract.mkString("\n"))
       } else {
         val abstract_buggy_ = buggy_abstract.map{case seq => {seq.split(" ").map(_.split("@").head).mkString(" ")}}
         val abstract_buggy_pos = buggy_abstract.map{case seq => {seq.split(" ").map(_.split("@").last).mkString(" ")}}
         val abstract_fixed_ = fixed_abstract.map{case seq => {seq.split(" ").map(_.split("@").head).mkString(" ")}}
         val abstract_fixed_pos = fixed_abstract.map{case seq => {seq.split(" ").map(_.split("@").last).mkString(" ")}}
 
-        write(getConfig.getOutputBuggyDir + "total/buggy.txt", abstract_buggy_.mkString("\n"))
-        write(getConfig.getOutputBuggyDir + "total/fixed.txt", abstract_fixed_.mkString("\n"))
-        write(getConfig.getOutputBuggyDir + "total/buggy-pos.txt", abstract_buggy_pos.mkString("\n"))
-        write(getConfig.getOutputBuggyDir + "total/fixed-pos.txt", abstract_fixed_pos.mkString("\n"))
+        write(getConfig.getString("output_dir") + "total/buggy.txt", abstract_buggy_.mkString("\n"))
+        write(getConfig.getString("output_dir") + "total/fixed.txt", abstract_fixed_.mkString("\n"))
+        write(getConfig.getString("output_dir") + "total/buggy-pos.txt", abstract_buggy_pos.mkString("\n"))
+        write(getConfig.getString("output_dir") + "total/fixed-pos.txt", abstract_fixed_pos.mkString("\n"))
       }
     } catch  {
       case e: FileNotFoundException => {

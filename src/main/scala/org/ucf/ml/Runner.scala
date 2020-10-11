@@ -57,7 +57,7 @@ class Runner extends utils.Arguments {
 
   def gen_abstract_code(config: ConfigNamespace) = {
     val config_path = config.getString("config")
-    val worker = new parallel.Master(config_path)
+    val worker = new parallel.Master(config)
     worker.run()
   }
 

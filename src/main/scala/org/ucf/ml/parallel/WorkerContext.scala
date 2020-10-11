@@ -1,8 +1,11 @@
 package org.ucf.ml
 package parallel
+import java.lang
+
 import org.ucf.ml.utils.Config
 
 import scala.collection.mutable
+import net.sourceforge.argparse4j.inf.{Namespace => ConfigNamespace}
 
 /**
  *
@@ -16,7 +19,7 @@ class WorkerContext(src_batch:List[String] = null,
                     idioms:mutable.HashSet[String],
                     worker_id:Int,
                     granularity: Value = METHOD,
-                    config: Config) {
+                    config: ConfigNamespace) {
 
   private val buggy_abstract = new StringBuilder
   private val fixed_abstract = new StringBuilder
@@ -36,6 +39,6 @@ class WorkerContext(src_batch:List[String] = null,
   def get_work_id = this.worker_id
   def get_granularity = this.granularity
 
-  def isWithPosition = config.getIsWithPosition
+  def isWithPosition: lang.Boolean = config.getBoolean("with_position")
 
 }

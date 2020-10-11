@@ -4,6 +4,7 @@ import java.io.File
 
 import com.github.javaparser.ast.CompilationUnit
 import com.github.javaparser.ast.expr.{NameExpr, SimpleName}
+import org.ucf.ml.utils.Context
 
 trait TestUtils extends parser.JavaParser with utils.Common {
   // Load data idioms

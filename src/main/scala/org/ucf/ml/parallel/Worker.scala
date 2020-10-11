@@ -3,8 +3,11 @@ package parallel
 
 
 import java.util.concurrent.Callable
+
 import scala.collection.mutable
 import java.io.File
+
+import org.ucf.ml.utils.Context
 
 class Worker(wtx: WorkerContext) extends Callable[WorkerContext] with utils.Common {
 

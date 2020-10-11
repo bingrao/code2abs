@@ -8,6 +8,7 @@ import com.github.javaparser.printer.PrettyPrinterConfiguration
 
 import scala.collection.JavaConversions._
 import gumtree.spoon.AstComparator
+import org.ucf.ml.utils.Context
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer

@@ -1,13 +1,12 @@
 package org.ucf.ml
+package utils
 
 import java.util.concurrent.atomic.AtomicInteger
 
-import org.ucf.ml.utils.{Common, Count}
-
-import scala.collection.mutable
 import com.github.javaparser.ast.Node
 import com.github.javaparser.ast.expr.SimpleName
 
+import scala.collection.mutable
 import scala.collection.mutable.{HashMap, ListBuffer}
 /**
  *  The Context object is shared by buggy and fixed partially regarding idioms and abstracts

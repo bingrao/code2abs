@@ -4,6 +4,9 @@ package parallel
 
 import java.io.{FileNotFoundException, IOException}
 import java.util.concurrent.{ExecutorService, Executors}
+
+import org.ucf.ml.utils.Config
+
 import scala.collection.JavaConversions._
 
 /**

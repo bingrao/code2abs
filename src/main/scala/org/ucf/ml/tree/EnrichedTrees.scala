@@ -10,6 +10,7 @@ import com.github.javaparser.ast.stmt._
 import com.github.javaparser.ast.body.VariableDeclarator
 import com.github.javaparser.ast.expr._
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter
+import org.ucf.ml.utils.Context
 
 import scala.annotation.tailrec
 import scala.collection.JavaConversions._

@@ -1,5 +1,7 @@
 package org.ucf.ml
 package parallel
+import org.ucf.ml.utils.Config
+
 import scala.collection.mutable
 
 /**

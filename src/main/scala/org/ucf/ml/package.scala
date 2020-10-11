@@ -1,6 +1,8 @@
 package org.ucf
 
 import com.github.javaparser.ast.Node
+import org.ucf.ml.utils.Context
+
 import scala.collection.mutable
 
 package object ml extends Enumeration {

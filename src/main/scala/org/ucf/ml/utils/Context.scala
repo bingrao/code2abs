@@ -7,7 +7,7 @@ import com.github.javaparser.ast.Node
 import com.github.javaparser.ast.expr.SimpleName
 
 import scala.collection.mutable
-import scala.collection.mutable.{HashMap, ListBuffer}
+import scala.collection.mutable.ListBuffer
 /**
  *  The Context object is shared by buggy and fixed partially regarding idioms and abstracts
  * @param idioms
@@ -27,26 +27,26 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
     /*AST Tree Node Position*/
     private val token_offset = new AtomicInteger()
 
-    def getNewPosition = token_offset.getAndIncrement()
-    def getCurrentPositionOffset = token_offset
+    def getNewPosition: Int = token_offset.getAndIncrement()
+    def getCurrentPositionOffset: AtomicInteger = token_offset
 
-    def get_token_abstract = this.token_abstract.mkString(" ")
-    def append_abstract(content:String) = this.token_abstract.+=(content)
+    def get_token_abstract: String = this.token_abstract.mkString(" ")
+    def append_abstract(content:String):Unit = this.token_abstract.+=(content)
 
 
-    def get_token_poistion = this.token_position
-    def append_position(pos:PositionEmbeddingType) = this.token_position.+=(pos)
+    def get_token_poistion: mutable.Seq[PositionEmbeddingType] = this.token_position
+    def append_position(pos:PositionEmbeddingType): Unit = this.token_position.+=(pos)
 
-    def get_token_abstract_with_position = {
+    def get_token_abstract_with_position: String = {
 
       val length = token_position.toList.map(_.size).max
-      (token_abstract.toList zip token_position.toList).map{case (token, position) => {
+      (token_abstract.toList zip token_position.toList).map{case (token, position) =>
         val sparseList = length :: (for ((value, index) <- position.zipWithIndex if value !=0) yield index)
-        s"${token}@[${sparseList.mkString(",")}]"
-      }}.mkString(" ")
+        s"$token@[${sparseList.mkString(",")}]"
+      }.mkString(" ")
     }
 
-    def printPretty() = {
+    def printPretty():Unit = {
       for ((token, position) <- token_abstract.toList zip token_position.toList) {
         // left alian 10 chars
         val sparseList = position.size :: (for ((value, index) <- position.zipWithIndex if value !=0) yield index)
@@ -56,66 +56,65 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
     }
   }
 
-  private val buggy_abstract = AbstractContext(SOURCE)
-  private val fixed_abstract = AbstractContext(TARGET)
+  private val buggy_abstract: AbstractContext = AbstractContext(SOURCE)
+  private val fixed_abstract: AbstractContext = AbstractContext(TARGET)
 
-  def get_buggy_abstract(isPosition:Boolean = false) =
+  def get_buggy_abstract(isPosition:Boolean = false): String =
     if (isPosition) buggy_abstract.get_token_abstract_with_position else buggy_abstract.get_token_abstract
-  def get_fixed_abstract(isPosition:Boolean = false) =
+  def get_fixed_abstract(isPosition:Boolean = false): String =
     if (isPosition) fixed_abstract.get_token_abstract_with_position else fixed_abstract.get_token_abstract
 
 
-  def buggy_toString = buggy_abstract.printPretty()
-  def fixed_toString = fixed_abstract.printPretty()
+  def buggy_toString():Unit = buggy_abstract.printPretty()
+  def fixed_toString():Unit = fixed_abstract.printPretty()
 
   // Shared Object by fixed and buggy
 
-  val positionalEmbedding = new HashMap[Node, PositionEmbeddingType]
-  def getPositionalEmbedding(node:Node) = positionalEmbedding.get(node)
+  val positionalEmbedding = new mutable.HashMap[Node, PositionEmbeddingType]
+  def getPositionalEmbedding(node:Node): Option[PositionEmbeddingType] = positionalEmbedding.get(node)
 
-  def positionalEmbeddingIsContain(node: Node) = this.positionalEmbedding.contains(node)
+  def positionalEmbeddingIsContain(node: Node): Boolean = this.positionalEmbedding.contains(node)
 
-  def addPositionalEmbedding(node: Node, pos:PositionEmbeddingType) =
+  def addPositionalEmbedding(node: Node, pos:PositionEmbeddingType): positionalEmbedding.type =
     this.positionalEmbedding.+=(node -> pos)
 
 
   // Current work mode
   private var current_mode = SOURCE
-  def getCurrentMode = this.current_mode
-  def setCurrentMode(target:Value) = {
+  def getCurrentMode: Value = this.current_mode
+  def setCurrentMode(target:Value): Unit = {
     this.current_mode = target
   }
 
 
-  def getNewPosition = this.getCurrentMode match {
+  def getNewPosition: Int = this.getCurrentMode match {
     case SOURCE => this.buggy_abstract.getNewPosition
     case TARGET => this.fixed_abstract.getNewPosition
   }
 
-  def get_abstract_code = this.getCurrentMode match {
+  def get_abstract_code: String = this.getCurrentMode match {
     case SOURCE => this.get_buggy_abstract()
     case TARGET => this.get_fixed_abstract()
   }
 
-  def append(content:String, numsIntent:Int = 0, position:PositionEmbeddingType = List.fill(1)(-1)) = this.getCurrentMode match {
-    case SOURCE => {
+  def append(content:String, numsIntent:Int = 0,
+             position:PositionEmbeddingType = List.fill(1)(-1)): Unit = this.getCurrentMode match {
+    case SOURCE =>
       this.buggy_abstract.append_abstract(content)
       this.buggy_abstract.append_position(position)
-    }
 
-    case TARGET => {
+    case TARGET =>
       this.fixed_abstract.append_abstract(content)
       this.fixed_abstract.append_position(position)
-    }
   }
 
 
-  def appendPosition(content:String, index:Int=0, position:PositionEmbeddingType = null, parent:Node=null) = {
+  def appendPosition(content:String, index:Int=0, position:PositionEmbeddingType = null, parent:Node=null): Unit = {
 
     val pos = if ((position == null) && (parent != null)) {
       val parant_pos = parent.genPosition(this)
       val pos_size = parent.getChildNodes.size() + nums_wrap_position
-      val newIndex = if (index >= 0) index else (pos_size + index)
+      val newIndex = if (index >= 0) index else pos_size + index
       val newNode = new SimpleName().setId(content).setParentNode(parent)
       val newposition = List.fill(pos_size)(0).updated(newIndex, 1) ::: parant_pos
       this.addPositionalEmbedding(newNode, newposition)
@@ -130,7 +129,7 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
 
 
   private var isNewLine = false
-  def setNewLine(value:Boolean) = this.isNewLine = value
+  def setNewLine(value:Boolean): Unit = this.isNewLine = value
 
   def appendNewLine(level:Int=0):Unit = this.getCurrentMode match {
     case SOURCE => if (isNewLine) this.buggy_abstract.append_abstract("\n")
@@ -142,12 +141,12 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
 
   /* Generating abstract code */
   var isAbstract = true
-  def setIsAbstract(value:Boolean) = this.isAbstract = value
+  def setIsAbstract(value:Boolean): Unit = this.isAbstract = value
 
   // CLASS or METHOD
   private var gran = granularity
-  def getGranularity = gran
-  def setGranularity(value:Value) = this.gran = value
+  def getGranularity: Value = gran
+  def setGranularity(value:Value): Unit = this.gran = value
   ///////////////////////////////////////////////////////////////////////////////////////
   /********************* set up and look up statistical data ***************************/
 
@@ -169,7 +168,7 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
 
   ///////////////////////////////////////////////////////////////////////////////////////
   /***************************** Helper functions *************************************/
-  def dumpy_mapping(path:String=null) = {
+  def dumpy_mapping(path:String=null): Unit = {
     ident_maps.dump_data(path)
     textBlock_maps.dump_data(path)
     string_maps.dump_data(path)

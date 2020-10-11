@@ -4,10 +4,12 @@ package parser
 
 import com.github.javaparser.{JavaToken, StaticJavaParser}
 import com.github.javaparser.ast.CompilationUnit
+import com.github.javaparser.ast.body.MethodDeclaration
 import com.github.javaparser.printer.PrettyPrinterConfiguration
 
 import scala.collection.JavaConversions._
 import gumtree.spoon.AstComparator
+import javassist.compiler.ast.MethodDecl
 import org.ucf.ml.utils.Context
 
 import scala.collection.mutable
@@ -97,6 +99,71 @@ class JavaParser extends Visitor  {
     context.get_buggy_abstract()
   }
 
+  def genCombinedFiles(buggy_dir:String,
+                       fixed_dir:String,
+                       output_dir:String): Unit = {
+
+    val buggy_src = ListBuffer[String]()
+    val fixed_src = ListBuffer[String]()
+
+    val config = new PrettyPrinterConfiguration()
+    config.setEndOfLineCharacter("")
+    config.setIndentSize(1)
+    config.setTabWidth(1)
+    var nums_line = 0
+    var cnt = 0
+    var fail_cnt = 0
+    val (buggy_files, fixed_files) = loadAndCheckData(buggy_dir, fixed_dir)
+
+    for ((buggy, fixed) <- buggy_files.zip(fixed_files)) {
+
+      try {
+        val buggy_cu = getComplationUnit(buggy, METHOD, true)
+        val fixed_cu = getComplationUnit(fixed, METHOD, true)
+        val buggy_class = getClassOrInterfaceDeclaration(buggy_cu).filter(c => c.getNameAsString.equals("DummyClass"))
+        val fixed_class = getClassOrInterfaceDeclaration(fixed_cu).filter(c => c.getNameAsString.equals("DummyClass"))
+
+        val buggy_m = if (buggy_class.nonEmpty) {
+          val dummpy = buggy_class(0)
+          val members = dummpy.getMembers
+          if (members.nonEmpty) members(0) else {
+            logger.info(s"[Failed]-Method: ${buggy}")
+            null
+          }
+        } else {
+          logger.info(s"[Failed]-Class: ${buggy}")
+          null
+        }
+        val fixed_m = if (fixed_class.nonEmpty) {
+          val dummpy = fixed_class(0)
+          val members = dummpy.getMembers
+          if (members.nonEmpty) members(0) else {
+            logger.info(s"[Failed]-Method: ${fixed}")
+            null
+          }
+        } else {
+          logger.info(s"[Failed]-Class: ${fixed}")
+          null
+        }
+
+        if (buggy_m != null && fixed_m != null) {
+          buggy_src.append(buggy_m.toString(config))
+          fixed_src.append(fixed_m.toString(config))
+          cnt = cnt + 1
+        }
+      } catch {
+        case e: Exception => {
+          fail_cnt = fail_cnt + 1
+        }
+      } finally {
+        nums_line = nums_line + 1
+      }
+    }
+    logger.info(s"The total ${nums_line}, found ${cnt}, failed ${fail_cnt}")
+    write(s"${output_dir}/buggy_src.txt", buggy_src.mkString("\n"))
+    write(s"${output_dir}/fixed_src.txt", fixed_src.mkString("\n"))
+  }
+
 
   def genSequencerData(src_path:String,
                        tgt_path:String,
@@ -115,6 +182,9 @@ class JavaParser extends Visitor  {
     val buggy = ListBuffer[String]()
     val fixed = ListBuffer[String]()
 
+    val buggy_src = ListBuffer[String]()
+    val fixed_src = ListBuffer[String]()
+
     val config = new PrettyPrinterConfiguration()
     config.setEndOfLineCharacter("")
     config.setIndentSize(1)
@@ -127,7 +197,8 @@ class JavaParser extends Visitor  {
 
     for ((src, tgt) <- src_source.zip(tgt_source)) {
       line_nums = line_nums + 1
-      if (src.contains("<START_BUG>") && src.contains("<END_BUG>") && src.size < max_length) {
+//      if (src.contains("<START_BUG>") && src.contains("<END_BUG>") && src.size < max_length) {
+      if (src.contains("<START_BUG>") && src.contains("<END_BUG>")) {
         try {
           val new_source = src.replace("<START_BUG>", "int START_BUG = 0;")
             .replace("<END_BUG>", "int END_BUG = 0;")
@@ -166,7 +237,10 @@ class JavaParser extends Visitor  {
             _task(context, tgt_cu, TARGET)
 
             buggy.append(context.get_buggy_abstract())
+            buggy_src.append(new_source)
             fixed.append(context.get_fixed_abstract())
+            fixed_src.append(new_target)
+
             find_nums = find_nums + 1
 
           })
@@ -180,12 +254,15 @@ class JavaParser extends Visitor  {
         }
       }
     }
-    logger.info(s"Total [${line_nums}], succecced [${succ_cnt}], faled [${fail_cnt}], find [${find_nums}]")
+    logger.info(s"Total [${line_nums}-${cnt}], succecced [${succ_cnt}], faled [${fail_cnt}], find [${find_nums}]")
 
     logger.info(s"Buggy code: ${buggy.size}, Fixed code: ${fixed.size}")
 
-    write(s"${output_dir}/buggy.txt", buggy.mkString("\n"))
-    write(s"${output_dir}/fixed.txt", fixed.mkString("\n"))
+    write(s"${output_dir}/buggy_abstract.txt", buggy.mkString("\n"))
+    write(s"${output_dir}/buggy_src.txt", buggy_src.mkString("\n"))
+
+    write(s"${output_dir}/fixed_abstract.txt", fixed.mkString("\n"))
+    write(s"${output_dir}/fixed_src.txt", fixed_src.mkString("\n"))
   }
 
 

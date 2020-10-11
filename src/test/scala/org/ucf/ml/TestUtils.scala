@@ -11,15 +11,15 @@ trait TestUtils extends parser.JavaParser with utils.Common {
   val idioms = readIdioms()
   val ctx = new Context(idioms)
 
-  def get_abstract_code(sourcePath:String, granularity:Value, isFile:Boolean = true): Unit = {
+  def get_abstract_code(sourcePath:String, granularity:Value = METHOD, isFile:Boolean = true, mode:Value = SOURCE): Unit = {
 
-    ctx.setCurrentMode(SOURCE)
+    ctx.setCurrentMode(mode)
     ctx.setGranularity(granularity)
 
     val cu = getComplationUnit(sourcePath, granularity, isFile)
 
-    printAST(outPath="logs/test.Yaml", cu = cu, format = "ymal")
-    printAST(outPath="logs/test.dot", cu = cu, format = "dot")
+    printAST(outPath=s"logs/${mode}-test.Yaml", cu = cu, format = "ymal")
+    printAST(outPath=s"logs/${mode}-test.dot", cu = cu, format = "dot")
 
     /**Traverse AST to generate corresponding node's positional embedding**/
     genPositionEmbedding(ctx, cu)
@@ -39,19 +39,20 @@ trait TestUtils extends parser.JavaParser with utils.Common {
 //      println("%-40s %s".format(key.getClass.getName.split("\\.").last + s"[${name}]", value.toString()))
 //    }
 
-    println(cu)
     println("***************************************************")
-    println(ctx.get_buggy_abstract())
+    println(cu)
 
-//    val a = getComplationUnit(ctx.get_buggy_abstract(), granularity, false)
+    println("***************************************************")
+    println(ctx.get_abstract_code)
+    val abstract_ast = getComplationUnit(ctx.get_abstract_code, granularity, false)
+
+    println("***************************************************")
+    println(abstract_ast)
 
 
     println("***************************************************")
     ctx.dumpy_mapping()
-    println("***************************************************")
-    ctx.buggy_toString
-    println("***************************************************")
-    println(ctx.get_buggy_abstract())
+
   }
 
 
@@ -84,8 +85,8 @@ trait TestUtils extends parser.JavaParser with utils.Common {
     if ((logger.isDebugEnabled) && (new File(buggyPath).getName != new File(fixedPath).getName)) {
       logger.error(s"[Input]-${buggyPath} != ${fixedPath}")
     }
-    single_abstract_task(buggyPath, SOURCE, METHOD, isFile)
-    single_abstract_task(fixedPath, TARGET, METHOD, isFile)
+    get_abstract_code(buggyPath, METHOD, isFile, SOURCE)
+    get_abstract_code(fixedPath, METHOD, isFile, TARGET)
     val buggy = ctx.get_buggy_abstract()
     val fixed = ctx.get_fixed_abstract()
     (buggy, fixed)

@@ -34,8 +34,14 @@ class Worker(wtx: WorkerContext) extends Callable[WorkerContext] with utils.Comm
     _task(ctx, fixedPath, TARGET, wtx.get_granularity)
 
     // append results
-    wtx.append_buggy(ctx.get_buggy_abstract(wtx.isWithPosition))
-    wtx.append_fixed(ctx.get_fixed_abstract(wtx.isWithPosition))
+    val buggy_abstract = ctx.get_buggy_abstract(wtx.isWithPosition)
+    val fixed_abstract = ctx.get_fixed_abstract(wtx.isWithPosition)
+
+    if (buggy_abstract.contains("\n") || fixed_abstract.contains("\n"))
+      logger.info(s"Error -> Buggy_Path: ${buggyPath}, Fixed_Path: ${fixedPath}")
+
+    wtx.append_buggy(buggy_abstract)
+    wtx.append_fixed(fixed_abstract)
 
     if (!last) {
       wtx.append_buggy("\n")

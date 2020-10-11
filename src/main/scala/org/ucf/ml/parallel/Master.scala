@@ -178,28 +178,4 @@ class Master (config:ConfigNamespace) extends utils.Common {
     }
 
   }
-
-  /*################################# Helper Functions #####################################*/
-  def loadAndCheckData(srcPath:String, tgtPath:String):(List[String], List[String]) = {
-    val srcFiles = getListOfFiles(srcPath)
-    val tgtFiles = getListOfFiles(tgtPath)
-
-    logger.info(f"Loading ${srcFiles.size} java files from ${srcPath}")
-    logger.info(f"Loading ${tgtFiles.size} java files from ${tgtPath}")
-
-    if (srcFiles.size != tgtFiles.size){
-      logger.error(f"The sizes of source (${srcFiles.size}) and target (${tgtFiles}) do not match ...")
-      System.exit(-1)
-    }
-
-    val files = (srcFiles zip tgtFiles).filter{
-      case (src, tgt) => src.getName != tgt.getName}
-
-    if (files.size != 0){
-      files.foreach{case (src, tgt) => logger.error(f"[Check]-${src} != ${tgt}")}
-      System.exit(-1)
-    }
-
-    (srcFiles.map(_.getPath), tgtFiles.map(_.getPath))
-  }
 }

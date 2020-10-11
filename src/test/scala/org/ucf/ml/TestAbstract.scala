@@ -56,7 +56,8 @@ class TestAbstract extends TestUtils {
     val file_index = 1
     val buggy = s"data/small/raw/buggy/${file_index}.java"
     val fixed = s"data/small/raw/fixed/${file_index}.java"
-    single_task(buggy, fixed)
+    get_abstract_code(buggy, METHOD, true, SOURCE)
+    get_abstract_code(fixed, METHOD, true, TARGET)
   }
 
 }

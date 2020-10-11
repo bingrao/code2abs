@@ -4,6 +4,7 @@ package parser
 
 import com.github.javaparser.ast.body.{ClassOrInterfaceDeclaration, MethodDeclaration, VariableDeclarator}
 import com.github.javaparser.ast.visitor.{TreeVisitor, VoidVisitorAdapter}
+import com.github.javaparser.ast.Node
 
 import scala.collection.mutable.ListBuffer
 import com.github.javaparser.ast.{Node, PackageDeclaration}
@@ -93,6 +94,22 @@ trait Visitor extends EnrichedTrees {
     }
 
   }
+
+
+
+
+  def getClassOrInterfaceDeclaration(cu:CompilationUnit) =
+    cu.findAll(classOf[ClassOrInterfaceDeclaration])
+      .stream()
+      .collect(Collectors.toList[ClassOrInterfaceDeclaration]())
+      .toList
+
+//  def getASTNode[A <: Node](cu:CompilationUnit) =
+//    cu.findAll(classOf[A])
+//      .stream()
+//      .collect(Collectors.toList[A]())
+//      .toList
+
 
   def getMethodCall(cu:CompilationUnit) =
     cu.findAll(classOf[MethodCallExpr])

@@ -95,7 +95,7 @@ trait EnrichedTrees extends utils.Common {
       // 2. Import Statements
       node.getImports.foreach(impl => {
         impl.genCode(ctx, numsIntent, tgt, 0)
-        ctx.appendNewLine()
+        
       })
 
       // 3. A list of defined types, such as Class, Interface, Enum, Annotation ...
@@ -111,7 +111,7 @@ trait EnrichedTrees extends utils.Common {
       node.getName.genCode(ctx, numsIntent, tgt, code_scope)
 
       ctx.appendPosition(";", index = -1, parent = node)
-      ctx.appendNewLine()
+      
     }
   }
 
@@ -136,7 +136,7 @@ trait EnrichedTrees extends utils.Common {
         ctx.appendPosition("*", index = 2, parent = node)
       }
       ctx.appendPosition(";", index = -1, parent = node)
-      ctx.appendNewLine()
+      
     }
   }
 
@@ -177,7 +177,7 @@ trait EnrichedTrees extends utils.Common {
           ctx.appendPosition(",", index = 1, parent = node)
       }
       ctx.appendPosition("}", index = -1, parent = node)
-      ctx.appendNewLine()
+      
     }
   }
 
@@ -216,7 +216,7 @@ trait EnrichedTrees extends utils.Common {
         tps.foreach(_.genCode(ctx, numsIntent, tgt, code_scope))
 
         ctx.appendPosition("{", index = 1, parent = node)
-        ctx.appendNewLine()
+        
       }
       // 3. Class Members: Filed and method, constructor
       val members = node.getMembers
@@ -224,7 +224,7 @@ trait EnrichedTrees extends utils.Common {
 
       if ((ctx.getGranularity == CLASS) || (!ctx.isAbstract) || local_class)
         ctx.appendPosition("}", index = -1, parent = node)
-      ctx.appendNewLine()
+      
     }
   }
 
@@ -245,7 +245,16 @@ trait EnrichedTrees extends utils.Common {
   implicit class genInitializerDeclaration(node:InitializerDeclaration) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null, code_scope:Int=0):Unit = {
       //TODO, no implmentation for learning bugs
-      ctx.appendPosition(node.toString(), numsIntent, position = node.genPosition(ctx))
+      if (node.isStatic) {
+        if (ctx.isAbstract)
+          ctx.appendPosition(ctx.ident_maps.getNewContent("static", code_scope), index = -2, parent = node)
+        else
+          ctx.appendPosition("static", index = -1, parent = node)
+      }
+
+      node.getBody.genCode(ctx, numsIntent, node, code_scope + 1)
+
+//      ctx.appendPosition(node.toString(), numsIntent, position = node.genPosition(ctx))
     }
   }
 
@@ -280,7 +289,7 @@ trait EnrichedTrees extends utils.Common {
           ctx.appendPosition(",", index = 1, parent = node)
       }
       ctx.appendPosition(";", index = -1, parent = node)
-      ctx.appendNewLine()
+      
     }
   }
 
@@ -469,7 +478,7 @@ trait EnrichedTrees extends utils.Common {
           label.get().genCode(ctx, numsIntent, node, code_scope)
       }
       ctx.appendPosition(";", index = -1, parent = node)
-      ctx.appendNewLine()
+      
     }
   }
 
@@ -479,7 +488,7 @@ trait EnrichedTrees extends utils.Common {
       node.getExpression.genCode(ctx, numsIntent, node, code_scope)
       if (!node.getParentNode.get().isInstanceOf[Expression]) {
         ctx.appendPosition(";", index = -1, parent = node)
-        ctx.appendNewLine()
+        
       }
     }
   }
@@ -500,7 +509,7 @@ trait EnrichedTrees extends utils.Common {
       sts.genCode(ctx, numsIntent, node, code_scope)
 
       ctx.appendPosition(";", index = -1, parent = node)
-      ctx.appendNewLine()
+      
 
     }
   }
@@ -511,7 +520,7 @@ trait EnrichedTrees extends utils.Common {
       ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("yield", code_scope) else "yield", position = node.genPosition(ctx))
       node.getExpression.genCode(ctx, numsIntent, node, code_scope)
       ctx.appendPosition(";", index = -1, parent = node)
-      ctx.appendNewLine()
+      
     }
   }
 
@@ -522,7 +531,7 @@ trait EnrichedTrees extends utils.Common {
       val expr = node.getExpression
       if (expr.isPresent) expr.get().genCode(ctx, numsIntent, node, code_scope)
       ctx.appendPosition(";", index = -1, parent = node)
-      ctx.appendNewLine()
+      
     }
   }
 
@@ -536,7 +545,7 @@ trait EnrichedTrees extends utils.Common {
       ctx.appendPosition("(", index = 0, parent = node)
       condition.genCode(ctx, numsIntent, node, code_scope + 1)
       ctx.appendPosition(")", index = 1, parent = node)
-      ctx.appendNewLine()
+      
 
       if (! body.isInstanceOf[BlockStmt]) ctx.appendPosition("{", index = 0, parent = node)
       body.genCode(ctx, numsIntent, node, code_scope + 1)
@@ -548,7 +557,7 @@ trait EnrichedTrees extends utils.Common {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null, code_scope:Int=0):Unit  = {
       if (tgt != null) logger.debug(f"empty" + getUpArrow + getPath(node, tgt))
       ctx.appendPosition(";", index = -1, parent = node)
-      ctx.appendNewLine()
+      
     }
   }
 
@@ -574,7 +583,7 @@ trait EnrichedTrees extends utils.Common {
 
       if (!thenStmt.isInstanceOf[BlockStmt])
         ctx.appendPosition("{", index = 0, parent = node)
-      ctx.appendNewLine()
+      
       thenStmt.genCode(ctx, numsIntent, node, code_scope + 1)
       if (!thenStmt.isInstanceOf[BlockStmt])
         ctx.appendPosition("}", index = 0, parent = node)
@@ -582,7 +591,7 @@ trait EnrichedTrees extends utils.Common {
       if (elseStmt.isPresent){
         ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("else", code_scope) else "else", position = elseStmt.get().genPosition(ctx))
         if (!elseStmt.get().isInstanceOf[BlockStmt]) ctx.appendPosition("{", index = 0, parent = node)
-        ctx.appendNewLine()
+        
         elseStmt.get().genCode(ctx, numsIntent, node, code_scope + 1)
         if (!elseStmt.get().isInstanceOf[BlockStmt]) ctx.appendPosition("}", index = 0, parent = node)
       }
@@ -603,7 +612,7 @@ trait EnrichedTrees extends utils.Common {
       }
 
       ctx.appendPosition(";", index = -1, parent = node)
-      ctx.appendNewLine()
+      
     }
   }
 
@@ -622,7 +631,7 @@ trait EnrichedTrees extends utils.Common {
       }
 
       ctx.appendPosition(";", index = -1, parent = node)
-      ctx.appendNewLine()
+      
     }
   }
 
@@ -646,7 +655,7 @@ trait EnrichedTrees extends utils.Common {
       ctx.appendPosition(")", index = 1, parent = node)
 
       ctx.appendPosition(";", index = -1, parent = node)
-      ctx.appendNewLine()
+      
     }
   }
 
@@ -698,7 +707,7 @@ trait EnrichedTrees extends utils.Common {
       if (node.getParentNode.isPresent && (node.getParentNode.get().isInstanceOf[MethodDeclaration] == false))
         ctx.appendPosition(";", index = 0, parent = node)
 
-      ctx.appendNewLine()
+      
     }
   }
 
@@ -744,7 +753,7 @@ trait EnrichedTrees extends utils.Common {
       parameter.genCode(ctx, numsIntent, node, code_scope)
       ctx.appendPosition(")", index = 1, parent = node)
       body.genCode(ctx, numsIntent, tgt, code_scope + 1)
-      ctx.appendNewLine()
+      
     }
   }
 
@@ -759,12 +768,12 @@ trait EnrichedTrees extends utils.Common {
       ctx.appendPosition("(", index = 0, parent = node)
       selector.genCode(ctx, numsIntent, node, code_scope + 1)
       ctx.appendPosition(")", index = 1, parent = node)
-      ctx.appendNewLine()
+      
 
       ctx.appendPosition("{", index = -3, parent = node)
       entries.foreach(_.genCode(ctx, numsIntent, node, code_scope + 1))
       ctx.appendPosition("}", index = -2, parent = node)
-      ctx.appendNewLine()
+      
     }
   }
 
@@ -783,10 +792,10 @@ trait EnrichedTrees extends utils.Common {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null, code_scope:Int=0):Unit  = {
 
       ctx.appendPosition("{", index = 0, parent = node)
-      ctx.appendNewLine()
+      
       node.getStatements.foreach(sts => sts.genCode(ctx, numsIntent, node, code_scope))
       ctx.appendPosition("}", index = 1, parent = node)
-      ctx.appendNewLine()
+      
     }
   }
 
@@ -842,7 +851,7 @@ trait EnrichedTrees extends utils.Common {
       node.getType.genCode(ctx, numsIntent, tgt, code_scope)
       ctx.appendPosition(".", index = 0, parent = node)
       ctx.appendPosition(if (ctx.isAbstract) ctx.ident_maps.getNewContent("class", code_scope) else "class", position = node.genPosition(ctx))
-      ctx.appendNewLine()
+      
     }
   }
 
@@ -1012,7 +1021,6 @@ trait EnrichedTrees extends utils.Common {
 
   implicit class genCastExpr(node:CastExpr) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null, code_scope:Int=0):Unit = {
-      //TODO no implement for this project
       ctx.appendPosition("(", index = 0, parent = node)
       node.getType.genCode(ctx, numsIntent, tgt, code_scope)
       ctx.appendPosition(")", index = 1, parent = node)
@@ -1091,13 +1099,12 @@ trait EnrichedTrees extends utils.Common {
       node.getEntries.foreach(_.genCode(ctx, numsIntent, tgt, code_scope))
 
       ctx.appendPosition("}", index = -2, parent = node)
-      ctx.appendNewLine()
+      
     }
   }
 
   implicit class genSwitchEntry(node:SwitchEntry) {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null, code_scope:Int=0):Unit = {
-      //TODO
       val lables = node.getLabels
       val sts = node.getStatements
       if (lables.size() == 0)
@@ -1223,6 +1230,13 @@ trait EnrichedTrees extends utils.Common {
       }
 
       ctx.appendPosition(")", index = -2, parent = node)
+
+      val anonyBody = node.getAnonymousClassBody
+      if (anonyBody.isPresent) {
+        ctx.appendPosition("{", index = -1, parent = node)
+        anonyBody.get().toList.foreach(_.genCode(ctx, numsIntent, tgt, code_scope))
+        ctx.appendPosition("}", index = -1, parent = node)
+      }
     }
   }
 
@@ -1261,9 +1275,7 @@ trait EnrichedTrees extends utils.Common {
       val op = node.getOperator.asString()
       val right = node.getRight
       left.genCode(ctx, numsIntent, tgt, code_scope)
-      // TODO op need path
       ctx.appendPosition(op, index = 0, parent = node)
-
       right.genCode(ctx, numsIntent, tgt, code_scope)
     }
   }

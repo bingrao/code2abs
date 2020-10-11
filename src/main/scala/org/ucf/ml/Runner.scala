@@ -53,7 +53,7 @@ class Runner extends utils.Arguments {
 
     val javaPaser = new parser.JavaParser
 
-//    javaPaser.genCombinedFiles(bugggy_dir, fixed_dir, output)
+    javaPaser.genCombinedFiles(bugggy_dir, fixed_dir, output)
   }
 
   def gen_abstract_code(config: ConfigNamespace) = {

@@ -1,7 +1,11 @@
-public void clearValues() {
-        if (null == (propertyTable))
-        throw new java.lang.IllegalStateException("You need to call asWidget() before clearing the values");
-
-        propertyProvider.setList(new java.util.ArrayList<org.jboss.as.console.client.shared.properties.PropertyRecord>());
-        setEnabled(false);
+@mockit.Test(expected = mockit.UnexpectedInvocation.class)
+public void mockSpecificEnumElementsEvenWhenUsingASingleStrictMockInstance(@mockit.Mocked(value = "getDescription")
+mockit.MockedEnumsTest.MyEnum unused) {
+        new mockit.Expectations() {
+        {
+        onInstance(mockit.MockedEnumsTest.MyEnum.First).getDescription();
+        onInstance(mockit.MockedEnumsTest.MyEnum.Second).getDescription();
+        }
+        };
+        mockit.MockedEnumsTest.MyEnum.Second.getDescription();
         }

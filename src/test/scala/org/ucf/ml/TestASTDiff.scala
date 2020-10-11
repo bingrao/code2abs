@@ -72,9 +72,9 @@ class TestASTDiff extends TestUtils {
         //          logger.error(f"[${cnt}] Successfully")
       } catch {
         case e: Exception => {
-          //          logger.info(f"[${cnt}] Failed: ${line}")
+//          logger.info(f"[${cnt}] Failed: ${line}")
           fail_cnt = fail_cnt + 1
-          //          logger.info(e.getMessage + "\n\n")
+//          logger.info(e.getMessage + "\n\n")
         }
       } finally {
         cnt = cnt + 1

@@ -3,6 +3,12 @@ package org.ucf.ml.utils
 import net.sourceforge.argparse4j.ArgumentParsers
 import net.sourceforge.argparse4j.inf.{ArgumentParser, ArgumentParserException, Namespace}
 
+import scala.io.Source
+import org.json4s._
+import org.json4s.native.JsonMethods._
+import scala.collection.JavaConversions._
+import scala.reflect.io.File
+
 class Arguments extends Common {
   def config_abstraction(parser: ArgumentParser): Unit = {
     val group = parser.addArgumentGroup("abstract")
@@ -47,6 +53,49 @@ class Arguments extends Common {
   }
 
   def getArguments(args: Array[String]): Namespace = {
+    implicit class updateConfig(namespace: Namespace) {
+
+      def update(key:String, value:Any): Unit = {
+        if (namespace.getAttrs.containsKey(key)) {
+          namespace.getAttrs.replace(key, value.asInstanceOf[Object])
+        }
+      }
+
+      def update_json_Config(): Namespace = {
+        implicit val formats = DefaultFormats
+        val configPath = namespace.getString("config")
+        val source = Source.fromFile(configPath).reader()
+        val jObject = parse(source)
+
+        for (elem <- namespace.getAttrs.keySet().toList) {
+          (jObject \ elem) match {
+            case value: JString => update(elem, value.extract[String])
+            case value: JBool => update(elem, value.extract[Boolean])
+            case value: JInt => update(elem, value.extract[Int])
+            case value: JLong => update(elem, value.extract[Long])
+            case value: JDouble => update(elem, value.extract[Double])
+            case value: JArray =>
+            case value: JDecimal =>
+            case value: JSet =>
+            case value: JObject =>
+            case JNothing =>
+            case _ =>
+          }
+        }
+        namespace
+      }
+
+      def update_yml_config(): Namespace = {
+        implicit val formats = DefaultFormats
+        import org.yaml.snakeyaml.Yaml
+
+        val configPath = namespace.getString("config")
+        val source = Source.fromFile(configPath).reader()
+        val ymal = new Yaml().load(source).asInstanceOf[java.util.LinkedHashMap[String, Any]]
+        ymal.foreach{ case (key, value) => update(key, value)}
+        namespace
+      }
+    }
 
     val parser = ArgumentParsers.newFor("Abstraction")
       .build().description("AST-Based Java Code abstration")
@@ -54,9 +103,13 @@ class Arguments extends Common {
     parser.addArgument("-run_type")
       .choices("abstract", "astdiff", "combine", "gateway", "sequencer")
       .setDefault[String]("abstract")
+      .required(false)
       .help("Spcify application type")
 
-    parser.addArgument("-config").help("The config path")
+    parser.addArgument("-config")
+      .`type`(classOf[String])
+      .setDefault[String]("conf/template-app.yml")
+      .help("The config path")
 
     parser.addArgument("-buggy_path").help("The input path or directory for buggy code")
     parser.addArgument("-fixed_path").help("The input path or directory for fixed code")
@@ -80,7 +133,14 @@ class Arguments extends Common {
     sequencer_abstraction(parser)
 
     val ns = try {
-      parser.parseArgs(args)
+      val namespace = parser.parseArgs(args)
+
+      val configPath = namespace.getString("config")
+      if (File(configPath).exists) {
+        if (configPath.endsWith("yml")) namespace.update_yml_config()
+        if (configPath.endsWith("json")) namespace.update_json_Config()
+      }
+      namespace
     } catch {
       case e: ArgumentParserException => {
         parser.handleError(e)

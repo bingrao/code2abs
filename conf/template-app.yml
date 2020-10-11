@@ -1,0 +1,5 @@
+"run_type": "combine"
+"buggy_path": "data/small/raw/buggy"
+"fixed_path": "data/small/raw/fixed"
+"output_dir": "data/small/raw"
+"max_length": 25000

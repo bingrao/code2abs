@@ -2,6 +2,7 @@ package org.ucf.ml
 
 import parser.JavaParser
 import net.sourceforge.argparse4j.inf.{Namespace => ConfigNamespace}
+import scala.collection.JavaConversions._
 
 /**
  * @author Bing
@@ -68,6 +69,12 @@ object Runner extends Runner {
 
   def main(args: Array[String]): Unit = {
     val config = getArguments(args)
+
+    config.getAttrs.foreach{case (key, value) =>
+      logger.info(s"${key} -> ${value}")
+    }
+
+
     config.getString("run_type") match {
       case "abstract" => gen_abstract_code(config)
       case "astdiff" => gen_ast_diff(config)

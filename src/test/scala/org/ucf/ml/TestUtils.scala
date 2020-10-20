@@ -2,9 +2,11 @@ package org.ucf.ml
 
 import java.io.File
 
-import com.github.javaparser.ast.CompilationUnit
+import com.github.javaparser.ast.{CompilationUnit, Node}
 import com.github.javaparser.ast.expr.{NameExpr, SimpleName}
 import org.ucf.ml.utils.Context
+
+import scala.collection.mutable.ListBuffer
 
 trait TestUtils extends parser.JavaParser with utils.Common {
   // Load data idioms
@@ -17,6 +19,13 @@ trait TestUtils extends parser.JavaParser with utils.Common {
     ctx.setGranularity(granularity)
 
     val cu = getComplationUnit(sourcePath, granularity, isFile)
+
+    val scopes = new ListBuffer[Node]()
+
+    ScopeCollector().visit(cu, scopes)
+
+    scopes.foreach(println _)
+
 
     printAST(outPath=s"logs/${mode}-test.Yaml", cu = cu, format = "ymal")
     printAST(outPath=s"logs/${mode}-test.dot", cu = cu, format = "dot")

@@ -8,9 +8,9 @@ import com.github.javaparser.ast.Node
 
 import scala.collection.mutable.ListBuffer
 import com.github.javaparser.ast.{Node, PackageDeclaration}
-import com.github.javaparser.ast.`type`.Type
+import com.github.javaparser.ast.`type`.{ClassOrInterfaceType, Type}
 import com.github.javaparser.ast.CompilationUnit
-import com.github.javaparser.ast.expr.{AssignExpr, MethodCallExpr, MethodReferenceExpr, NameExpr, SimpleName}
+import com.github.javaparser.ast.expr.{AssignExpr, FieldAccessExpr, MethodCallExpr, MethodReferenceExpr, NameExpr, ObjectCreationExpr, SimpleName}
 
 import scala.collection.JavaConversions._
 import java.util.stream.Collectors
@@ -60,6 +60,23 @@ trait Visitor extends EnrichedTrees {
     }
   }
 
+
+  case class ScopeCollector() extends VoidVisitorAdapter[ListBuffer[Node]] {
+    override def visit(n:Node, c:ListBuffer[Node]): Unit = {
+      n match {
+        case expr:MethodCallExpr => if (expr.getScope.isPresent) c.+=(n)
+        case expr:MethodReferenceExpr => c.+=(n)
+        case expr:ObjectCreationExpr => if (expr.getScope.isPresent) c.+=(n)
+        case expr:FieldAccessExpr => c.+=(n)
+        case expr:ClassOrInterfaceType => if (expr.getScope.isPresent) c.+=(n)
+        case _ =>
+      }
+
+
+      super.visit(n,c)
+    }
+  }
+
   @deprecated
   case class addPositionVisitor(ctx:Context) extends TreeVisitor {
     override def process(node: Node): Unit = {
@@ -103,13 +120,6 @@ trait Visitor extends EnrichedTrees {
       .stream()
       .collect(Collectors.toList[ClassOrInterfaceDeclaration]())
       .toList
-
-//  def getASTNode[A <: Node](cu:CompilationUnit) =
-//    cu.findAll(classOf[A])
-//      .stream()
-//      .collect(Collectors.toList[A]())
-//      .toList
-
 
   def getMethodCall(cu:CompilationUnit) =
     cu.findAll(classOf[MethodCallExpr])

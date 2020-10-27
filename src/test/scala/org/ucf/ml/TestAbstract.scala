@@ -52,7 +52,7 @@ class TestAbstract extends TestUtils {
   }
 
   @Test def testPairAbstract():Unit = {
-    val file_index = 19
+    val file_index = 1
     val buggy = s"data/small/raw/buggy/$file_index.java"
     val fixed = s"data/small/raw/fixed/$file_index.java"
     get_abstract_code(buggy, METHOD, isFile = true, SOURCE)

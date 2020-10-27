@@ -1604,11 +1604,18 @@ trait EnrichedTrees extends utils.Common {
 
   def isScopeExpand(scope:Node, ctx:Context):Boolean = {
 
-    if (ctx.bpe_enable)
-        return true
-
     val allPaths = new ListBuffer[Node]
     getAllScopePath(scope, allPaths)
+
+    if (ctx.bpe_enable) {
+      // if the root path of scope is identified by BPE, then return false and do not expand
+      if (ctx.bpe_map.contain(scope.toString)) return false
+      val bpe = allPaths.filter(node => ctx.bpe_map.contain(node.toString))
+      // if the sub-path of root scope is identified by BPE,
+      // then return true and we need to expand it
+      if (! bpe.isEmpty) return true
+    }
+
 
     if (ctx.ident_maps.getIdioms.contains(scope.toString) ||
       ctx.ident_maps.getKeywords.contains(scope.toString()))
@@ -1641,14 +1648,15 @@ trait EnrichedTrees extends utils.Common {
      *
      * such as: a.b.c() --> a or b is defined
      */
-    allPaths.toList.map(node => node match {
-      case node:NameExpr => ctx.variable_maps.contain(node.getNameAsString)
-      case node:MethodCallExpr => ctx.method_maps.contain(node.getNameAsString)
-      case expr:MethodReferenceExpr => ctx.method_maps.contain(expr.getIdentifier)
-      case node:ObjectCreationExpr => ctx.type_maps.contain(node.getType.asString())
-      case node:FieldAccessExpr => ctx.ident_maps.contain(node.getNameAsString)
-      case node:ClassOrInterfaceType => ctx.type_maps.contain(node.getNameAsString)
-      case _ => false
+    allPaths.toList.map(
+      node => node match {
+        case node:NameExpr => ctx.variable_maps.contain(node.getNameAsString)
+        case node:MethodCallExpr => ctx.method_maps.contain(node.getNameAsString)
+        case expr:MethodReferenceExpr => ctx.method_maps.contain(expr.getIdentifier)
+        case node:ObjectCreationExpr => ctx.type_maps.contain(node.getType.asString())
+        case node:FieldAccessExpr => ctx.ident_maps.contain(node.getNameAsString)
+        case node:ClassOrInterfaceType => ctx.type_maps.contain(node.getNameAsString)
+        case _ => false
     }).reduce(_ || _)
   }
 

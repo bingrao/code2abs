@@ -120,16 +120,17 @@ trait Visitor extends EnrichedTrees {
   def getBytePairEncodingFromCompilation(cu: CompilationUnit) = {
     val identifier = "[_a-zA-Z][_a-zA-Z0-9]*"
 
-    def get_max_pairs(tokens:List[String]) = {
+    def get_max_pairs(tokens: List[String]) = {
       val left = tokens.drop(1).asInstanceOf[List[String]] :+ "NULL"
       val zipped_tokens = tokens.zip(left)
       val count = zipped_tokens.groupBy(identity).mapValues(_.size)
       val condidates = count.filter {
         case ((key1, key2), value) => {
           (key1.matches(s"${identifier}[.${identifier}]*") && key2 == ".") ||
-            (key1.matches(s"${identifier}[.${identifier}]*[.]") && key2.matches(identifier))
+//            (key1.matches(s"${identifier}[.${identifier}]*[.]") && key2.matches(s"${identifier}[.${identifier}]*[.]")) ||
+            (key1.matches(s"${identifier}[.${identifier}]*[.]") && key2.matches(s"${identifier}[.${identifier}]*"))
         }
-      }.toList.sortBy{
+      }.toList.sortBy {
         case ((key1, key2), value) => tokens.indexOf(key1)
       }
 
@@ -146,6 +147,7 @@ trait Visitor extends EnrichedTrees {
     val mergedList = new ListBuffer[String]
     var scan = true
     var skip = false
+    var nums_token = code_tokens.size
 
     while(scan) {
       val tokens = if (mergedList.isEmpty)
@@ -158,7 +160,7 @@ trait Visitor extends EnrichedTrees {
         val ((key1, key2), value) = max_pairs
         if (value > 1) {
           mergedList.clear()
-          for (i <- 0 until tokens.size - 2) {
+          for (i <- 0 until tokens.size - 1) {
             if (!skip) {
               if (tokens(i) == key1 && tokens(i + 1) == key2) {
                 mergedList.append(key1 + key2)
@@ -186,6 +188,8 @@ trait Visitor extends EnrichedTrees {
 
     results.toList
   }
+
+
 
   def getClassOrInterfaceDeclaration(cu:CompilationUnit): List[ClassOrInterfaceDeclaration] =
     cu.findAll(classOf[ClassOrInterfaceDeclaration])

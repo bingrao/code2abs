@@ -75,6 +75,7 @@ class JavaParser extends Visitor  {
           source = replace_source.replace(key, value(0).split("_")(0))
         }
       }
+      println(source)
       StaticJavaParser.parse(source)
     } else cu
   }

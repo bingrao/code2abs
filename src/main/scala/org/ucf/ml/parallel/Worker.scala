@@ -15,13 +15,19 @@ class Worker(wtx: WorkerContext) extends Callable[WorkerContext] with utils.Comm
 
   def task(buggyPath:String, fixedPath:String, last:Boolean=false) = {
     def _task(ctx:Context, inputPath:String, mode:Value, granularity:Value) = {
+      try {
+        ctx.setCurrentMode(mode)
+        if (logger.isDebugEnabled) ctx.append(s"[${wtx.get_work_id}]-${new File(inputPath).getName}")
 
-      ctx.setCurrentMode(mode)
-      if (logger.isDebugEnabled) ctx.append(s"[${wtx.get_work_id}]-${new File(inputPath).getName}")
+        val cu = javaPaser.getBPEComplationUnit(inputPath, ctx, granularity)
 
-      val cu = javaPaser.getBPEComplationUnit(inputPath, ctx, granularity)
-
-      javaPaser.genAbstractCode(ctx, cu)
+        javaPaser.genAbstractCode(ctx, cu)
+      } catch {
+        case e: Exception => {
+          logger.info(s"The working model: ${mode}, error input ${inputPath}")
+          e.printStackTrace()
+        }
+      }
     }
 
     val ctx = new Context(wtx.get_idioms, wtx.get_granularity)

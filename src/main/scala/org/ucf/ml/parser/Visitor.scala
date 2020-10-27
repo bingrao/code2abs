@@ -118,6 +118,7 @@ trait Visitor extends EnrichedTrees {
   }
 
   def getBytePairEncodingFromCompilation(cu: CompilationUnit) = {
+    val identifier = "[_a-zA-Z][_a-zA-Z0-9]*"
 
     def get_max_pairs(tokens:List[String]) = {
       val left = tokens.drop(1).asInstanceOf[List[String]] :+ "NULL"
@@ -125,9 +126,11 @@ trait Visitor extends EnrichedTrees {
       val count = zipped_tokens.groupBy(identity).mapValues(_.size)
       val condidates = count.filter {
         case ((key1, key2), value) => {
-          (key1.matches("[a-zA-Z]*") && key2 == ".") ||
-            (key1.matches("^[a-zA-Z][a-zA-Z-.]*[.]") && key2.matches("[a-zA-Z-.]*"))
+          (key1.matches(s"${identifier}[.${identifier}]*") && key2 == ".") ||
+            (key1.matches(s"${identifier}[.${identifier}]*[.]") && key2.matches(identifier))
         }
+      }.toList.sortBy{
+        case ((key1, key2), value) => tokens.indexOf(key1)
       }
 
       if (condidates.isEmpty)
@@ -174,8 +177,12 @@ trait Visitor extends EnrichedTrees {
         scan = false
     }
 
-    val results = mergedList.filter(ele => ele.split("\\.").size > 1).distinct.map(ele =>
-      if (ele.last == '.') ele.dropRight(1) else ele)
+    val results = mergedList.filter(
+//      ele => ele.split("\\.").size > 1 && ele.matches("^[a-zA-Z_.][a-zA-Z0-9_.]*")
+      ele => ele.split("\\.").size > 1 && ele.matches(s"${identifier}[.${identifier}]*")
+    ).distinct.map(ele =>
+      if (ele.last == '.') ele.dropRight(1) else ele
+    )
 
     results.toList
   }

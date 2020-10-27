@@ -17,10 +17,9 @@ class Worker(wtx: WorkerContext) extends Callable[WorkerContext] with utils.Comm
     def _task(ctx:Context, inputPath:String, mode:Value, granularity:Value) = {
 
       ctx.setCurrentMode(mode)
-
       if (logger.isDebugEnabled) ctx.append(s"[${wtx.get_work_id}]-${new File(inputPath).getName}")
 
-      val cu = javaPaser.getComplationUnit(inputPath, granularity)
+      val cu = javaPaser.getBPEComplationUnit(inputPath, ctx, granularity)
 
       javaPaser.genAbstractCode(ctx, cu)
     }
@@ -30,6 +29,7 @@ class Worker(wtx: WorkerContext) extends Callable[WorkerContext] with utils.Comm
     if ((logger.isDebugEnabled) && (new File(buggyPath).getName != new File(fixedPath).getName)) {
       logger.error(s"[Input]-${buggyPath} != ${fixedPath}")
     }
+//    logger.info(s"${buggyPath} -> ${fixedPath}")
     _task(ctx, buggyPath, SOURCE, wtx.get_granularity)
     _task(ctx, fixedPath, TARGET, wtx.get_granularity)
 

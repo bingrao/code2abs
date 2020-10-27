@@ -1603,6 +1603,10 @@ trait EnrichedTrees extends utils.Common {
   }
 
   def isScopeExpand(scope:Node, ctx:Context):Boolean = {
+
+    if (ctx.bpe_enable)
+        return true
+
     val allPaths = new ListBuffer[Node]
     getAllScopePath(scope, allPaths)
 

@@ -4,13 +4,12 @@ package parser
 
 import com.github.javaparser.ast.body.{ClassOrInterfaceDeclaration, MethodDeclaration, VariableDeclarator}
 import com.github.javaparser.ast.visitor.{TreeVisitor, VoidVisitorAdapter}
-import com.github.javaparser.ast.Node
 
 import scala.collection.mutable.ListBuffer
 import com.github.javaparser.ast.{Node, PackageDeclaration}
 import com.github.javaparser.ast.`type`.{ClassOrInterfaceType, Type}
 import com.github.javaparser.ast.CompilationUnit
-import com.github.javaparser.ast.expr.{AssignExpr, FieldAccessExpr, MethodCallExpr, MethodReferenceExpr, NameExpr, ObjectCreationExpr, SimpleName}
+import com.github.javaparser.ast.expr.{AssignExpr, FieldAccessExpr, MethodCallExpr, MethodReferenceExpr, ObjectCreationExpr, SimpleName}
 
 import scala.collection.JavaConversions._
 import java.util.stream.Collectors
@@ -23,7 +22,7 @@ import tree.EnrichedTrees
 trait Visitor extends EnrichedTrees {
 
   case class TypeCalculatorVisitor() extends VoidVisitorAdapter[JavaParserFacade] {
-    override def visit(n:ReturnStmt, arg:JavaParserFacade) = {
+    override def visit(n:ReturnStmt, arg:JavaParserFacade):Unit = {
       super.visit(n, arg)
       if (n.getExpression.isPresent)
         logger.info(s"${n.getExpression.get().toString} " +
@@ -62,17 +61,28 @@ trait Visitor extends EnrichedTrees {
 
 
   case class ScopeCollector() extends VoidVisitorAdapter[ListBuffer[Node]] {
-    override def visit(n:Node, c:ListBuffer[Node]): Unit = {
-      n match {
-        case expr:MethodCallExpr => if (expr.getScope.isPresent) c.+=(n)
-        case expr:MethodReferenceExpr => c.+=(n)
-        case expr:ObjectCreationExpr => if (expr.getScope.isPresent) c.+=(n)
-        case expr:FieldAccessExpr => c.+=(n)
-        case expr:ClassOrInterfaceType => if (expr.getScope.isPresent) c.+=(n)
-        case _ =>
-      }
+    override def visit(n:MethodCallExpr, c:ListBuffer[Node]): Unit = {
+      if (n.getScope.isPresent) c.+=(n)
+      super.visit(n,c)
+    }
 
+    override def visit(n:MethodReferenceExpr, c:ListBuffer[Node]): Unit = {
+      c.+=(n)
+      super.visit(n,c)
+    }
 
+    override def visit(n:ObjectCreationExpr, c:ListBuffer[Node]): Unit = {
+      if (n.getScope.isPresent) c.+=(n)
+      super.visit(n,c)
+    }
+
+    override def visit(n:FieldAccessExpr, c:ListBuffer[Node]): Unit = {
+      c.+=(n.getScope)
+      super.visit(n,c)
+    }
+
+    override def visit(n:ClassOrInterfaceType, c:ListBuffer[Node]): Unit = {
+      if (n.getScope.isPresent) c.+=(n.getScope.get())
       super.visit(n,c)
     }
   }
@@ -81,94 +91,149 @@ trait Visitor extends EnrichedTrees {
   case class addPositionVisitor(ctx:Context) extends TreeVisitor {
     override def process(node: Node): Unit = {
       node match {
-        case p: PackageDeclaration => {
+        case p: PackageDeclaration =>
           logger.info(f"${p.getName} -> ${p.getPosition(ctx)}")
-        }
-        case c: ClassOrInterfaceDeclaration => {
+        case c: ClassOrInterfaceDeclaration =>
           logger.info(f"${c.getName} -> ${c.getPosition(ctx)}")
-        }
-        case m: MethodDeclaration => {
+        case m: MethodDeclaration =>
           logger.info(f"${m.getName} -> ${m.getPosition(ctx)}")
-        }
-        case _ =>{}
+        case _ =>
       }
     }
   }
 
   /**
    *  A tree visitor to generate the corresponding node's positional embedding
-   * @param ctx
+   * @param ctx Context
    */
   case class genPostionVisitor(ctx:Context) extends TreeVisitor {
     override def process(node: Node): Unit = node match {
 
       // We initially set up positional embedding of a method as start point: [0.0]
-      case n:MethodDeclaration => {
+      case _: MethodDeclaration =>
         val pos = List.fill(1)(0)
         ctx.addPositionalEmbedding(node, pos)
-      }
       case _ => node.genPosition(ctx)
     }
-
   }
 
+  def getBytePairEncodingFromCompilation(cu: CompilationUnit) = {
 
+    def get_max_pairs(tokens:List[String]) = {
+      val left = tokens.drop(1).asInstanceOf[List[String]] :+ "NULL"
+      val zipped_tokens = tokens.zip(left)
+      val count = zipped_tokens.groupBy(identity).mapValues(_.size)
+      val condidates = count.filter {
+        case ((key1, key2), value) => {
+          (key1.matches("[a-zA-Z]*") && key2 == ".") ||
+            (key1.matches("^[a-zA-Z][a-zA-Z-.]*[.]") && key2.matches("[a-zA-Z-.]*"))
+        }
+      }
 
+      if (condidates.isEmpty)
+        null
+      else
+        condidates.maxBy(_._2)
+    }
 
-  def getClassOrInterfaceDeclaration(cu:CompilationUnit) =
+    val code_tokens = cu.getTokenRange.get()
+      .toList.filter(
+      e => e.getText != " " && e.getText != "\n").map(_.getText)
+
+    val mergedList = new ListBuffer[String]
+    var scan = true
+    var skip = false
+
+    while(scan) {
+      val tokens = if (mergedList.isEmpty)
+        code_tokens
+      else {
+        mergedList.toList
+      }
+      val max_pairs = get_max_pairs(tokens)
+      if (max_pairs != null) {
+        val ((key1, key2), value) = max_pairs
+        if (value > 1) {
+          mergedList.clear()
+          for (i <- 0 until tokens.size - 2) {
+            if (!skip) {
+              if (tokens(i) == key1 && tokens(i + 1) == key2) {
+                mergedList.append(key1 + key2)
+                skip = true
+              } else {
+                mergedList.append(tokens(i))
+              }
+            } else {
+              skip = false
+            }
+          }
+        } else {
+          scan = false
+        }
+      } else
+        scan = false
+    }
+
+    val results = mergedList.filter(ele => ele.split("\\.").size > 1).distinct.map(ele =>
+      if (ele.last == '.') ele.dropRight(1) else ele)
+
+    results.toList
+  }
+
+  def getClassOrInterfaceDeclaration(cu:CompilationUnit): List[ClassOrInterfaceDeclaration] =
     cu.findAll(classOf[ClassOrInterfaceDeclaration])
       .stream()
       .collect(Collectors.toList[ClassOrInterfaceDeclaration]())
       .toList
 
-  def getMethodCall(cu:CompilationUnit) =
+  def getMethodCall(cu:CompilationUnit): List[MethodCallExpr] =
     cu.findAll(classOf[MethodCallExpr])
       .stream()
       .collect(Collectors.toList[MethodCallExpr]())
       .toList
 
-  def getMethodDecl(cu:CompilationUnit) =
+  def getMethodDecl(cu:CompilationUnit): List[MethodDeclaration] =
     cu.findAll(classOf[MethodDeclaration])
       .stream()
       .collect(Collectors.toList[MethodDeclaration]())
       .toList
 
-  def getMethodRef(cu:CompilationUnit) =
+  def getMethodRef(cu:CompilationUnit): List[MethodReferenceExpr] =
     cu.findAll(classOf[MethodReferenceExpr])
       .stream()
       .collect(Collectors.toList[MethodReferenceExpr]())
       .toList
 
-  def getTypes(cu:CompilationUnit) =
+  def getTypes(cu:CompilationUnit): List[Type] =
     cu.findAll(classOf[Type])
       .stream()
       .collect(Collectors.toList[Type]())
       .toList
 
-  def getSimpleName(cu:CompilationUnit) =
+  def getSimpleName(cu:CompilationUnit): List[SimpleName] =
     cu.findAll(classOf[SimpleName])
       .stream()
       .collect(Collectors.toList[SimpleName]())
       .toList
 
-  def getVariableDeclarator(cu:CompilationUnit) =
+  def getVariableDeclarator(cu:CompilationUnit): List[VariableDeclarator] =
     cu.findAll(classOf[VariableDeclarator])
       .stream()
       .collect(Collectors.toList[VariableDeclarator]())
       .toList
 
-  def getAssignExpr(cu:CompilationUnit) =
+  def getAssignExpr(cu:CompilationUnit): List[AssignExpr] =
     cu.findAll(classOf[AssignExpr])
       .stream()
       .collect(Collectors.toList[AssignExpr]())
       .toList
 
   @deprecated
-  def addPosition(ctx:Context, cu:CompilationUnit) = addPositionVisitor(ctx).visitBreadthFirst(cu)
+  def addPosition(ctx:Context, cu:CompilationUnit): Unit = addPositionVisitor(ctx).visitBreadthFirst(cu)
 
-  def genAbstractCode(ctx:Context, cu:CompilationUnit) = cu.genCode(ctx)
+  def genAbstractCode(ctx:Context, cu:CompilationUnit): Unit = {
+    cu.genCode(ctx)
+  }
 
-  def genPositionEmbedding(ctx:Context, cu:CompilationUnit) = genPostionVisitor(ctx).visitBreadthFirst(cu)
-
-
+  def genPositionEmbedding(ctx:Context, cu:CompilationUnit): Unit = genPostionVisitor(ctx).visitBreadthFirst(cu)
 }

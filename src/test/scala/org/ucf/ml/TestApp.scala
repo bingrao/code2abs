@@ -31,8 +31,20 @@ class ScalaTestAPP extends TestUtils {
     val cu = getComplationUnit(inputClass, CLASS, false)
     printAST(outPath=null, cu = cu, format = "ymal")
   }
+
   @Test def testParallel(): Unit ={
-    val worker = new parallel.Master(null)
+    import scala.jdk.CollectionConverters._
+    val config = Map[String, Object]("run_type" -> "abstract",
+      "buggy_path"-> "data/small/raw/buggy/",
+      "fixed_path" ->"data/small/raw/fixed/",
+      "idioms_path" -> "data/idioms/idioms.csv",
+      "with_position" -> false.asInstanceOf[Object],
+      "output_position" -> false.asInstanceOf[Object],
+      "output_dir" -> "data/small/processed/total/",
+      "nums_worker" -> 1.asInstanceOf[Object]).asJava
+
+    import net.sourceforge.argparse4j.inf.Namespace
+    val worker = new parallel.Master(new Namespace(config))
     worker.run()
   }
 

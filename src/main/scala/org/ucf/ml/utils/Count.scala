@@ -29,9 +29,11 @@ class Count[K, V <: String](name:String, idioms:mutable.HashSet[String],
 
   def getIdioms = this.idioms
   def getKeywords = this.keywords
+  def getData = this.data
+
 
   def getPrefix = this.prefix
-  private def getNewValue = (f"${name}_${this.getIncCount}").asInstanceOf[V]
+  private def getNewValue = (f"${name}${this.getIncCount}").asInstanceOf[V]
 
   private def getIncCount = offset.getAndIncrement()
   private def getDecCount = offset.getAndDecrement()
@@ -102,7 +104,7 @@ class Count[K, V <: String](name:String, idioms:mutable.HashSet[String],
     } else if (idioms.contains(key.toString)) {
       // the key is a idiom
       val value = key.asInstanceOf[V]
-      this.update(key, s"${value}_0_${code_scope}".asInstanceOf[V])
+      this.update(key, s"${value}_${code_scope}".asInstanceOf[V])
       value
     } else {
       val value = this.getNewValue

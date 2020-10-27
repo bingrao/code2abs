@@ -3,7 +3,6 @@ package org.ucf.ml
  * @author
  */
 import org.junit.Test
-import org.junit.Assert._
 
 class TestAbstract extends TestUtils {
 
@@ -14,7 +13,7 @@ class TestAbstract extends TestUtils {
         |   Int c = a + b;
         | }
         |""".stripMargin
-    val code = genAbstratCodeWithPosition(inputClass, granularity = METHOD, isFile = false)
+    val code = genAbstratCodeWithPosition(inputClass, granularity = METHOD)
     println(code)
   }
 
@@ -39,25 +38,33 @@ class TestAbstract extends TestUtils {
         |    }
         |}
         |""".stripMargin
-    get_abstract_code(inputClass, CLASS, false)
+    get_abstract_code(inputClass, CLASS, isFile = false)
   }
 
   @Test def testAbstractFile_68(): Unit = {
     val input = "data/small/raw/fixed/1.java"
-    get_abstract_code(input, METHOD, true)
+    get_abstract_code(input, METHOD)
   }
 
   @Test def testAbstractFile(): Unit ={
     val input = "data/small/raw/buggy/1.java"
-    get_abstract_code(input, METHOD, true)
+    get_abstract_code(input, METHOD)
   }
 
   @Test def testPairAbstract():Unit = {
-    val file_index = 1
-    val buggy = s"data/small/raw/buggy/${file_index}.java"
-    val fixed = s"data/small/raw/fixed/${file_index}.java"
-    get_abstract_code(buggy, METHOD, true, SOURCE)
-    get_abstract_code(fixed, METHOD, true, TARGET)
+    val file_index = 19
+    val buggy = s"data/small/raw/buggy/$file_index.java"
+    val fixed = s"data/small/raw/fixed/$file_index.java"
+    get_abstract_code(buggy, METHOD, isFile = true, SOURCE)
+    get_abstract_code(fixed, METHOD, isFile = true, TARGET)
   }
 
+
+  @Test def testBytePairAbstract():Unit = {
+    val file_index = 1
+    val buggy = s"data/small/raw/buggy/$file_index.java"
+    val fixed = s"data/small/raw/fixed/$file_index.java"
+    logger.info(s"Buggy: ${getBytePairEncodingFromString(buggy)}")
+    logger.info(s"Fixed: ${getBytePairEncodingFromString(fixed)}")
+  }
 }

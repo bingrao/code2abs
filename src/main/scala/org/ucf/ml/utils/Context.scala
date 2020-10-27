@@ -149,6 +149,10 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
   def setGranularity(value:Value): Unit = this.gran = value
   ///////////////////////////////////////////////////////////////////////////////////////
   /********************* set up and look up statistical data ***************************/
+  val bpe_enable = true
+  val bpe_map = new Count[String, String]("BPE", idioms, with_scope=with_scope)
+
+
 
   // Java keywords and not appear identifiers in the context
   val ident_maps = new Count[String, String]("Ident", idioms, with_scope=with_scope)
@@ -180,5 +184,6 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
     type_maps.dump_data(path)
     method_maps.dump_data(path)
     variable_maps.dump_data(path)
+    bpe_map.dump_data(path)
   }
 }

@@ -18,14 +18,9 @@ trait TestUtils extends parser.JavaParser with utils.Common {
     ctx.setCurrentMode(mode)
     ctx.setGranularity(granularity)
 
-    val cu = getComplationUnit(sourcePath, granularity, isFile)
+//    val cu = getComplationUnit(sourcePath, granularity, isFile)
 
-    val scopes = new ListBuffer[Node]()
-
-    ScopeCollector().visit(cu, scopes)
-
-    scopes.foreach(println _)
-
+    val cu = getBPEComplationUnit(sourcePath, ctx, granularity, isFile)
 
     printAST(outPath=s"logs/${mode}-test.Yaml", cu = cu, format = "ymal")
     printAST(outPath=s"logs/${mode}-test.dot", cu = cu, format = "dot")
@@ -116,6 +111,12 @@ trait TestUtils extends parser.JavaParser with utils.Common {
 
       println(s"${value.reverse.toString()} <- ${key.getClass.getName}-[${name}]")
     }}
+  }
+
+
+  def getBytePairEncodingFromString(inputPath:String, granularity:Value = METHOD, isFile:Boolean=true) = {
+    val cu = getComplationUnit(inputPath, granularity, isFile)
+    getBytePairEncodingFromCompilation(cu)
   }
 
 }

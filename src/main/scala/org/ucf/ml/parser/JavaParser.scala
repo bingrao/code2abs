@@ -4,15 +4,12 @@ package parser
 
 import com.github.javaparser.{JavaToken, StaticJavaParser}
 import com.github.javaparser.ast.CompilationUnit
-import com.github.javaparser.ast.body.MethodDeclaration
 import com.github.javaparser.printer.PrettyPrinterConfiguration
 
 import scala.collection.JavaConversions._
 import gumtree.spoon.AstComparator
-import javassist.compiler.ast.MethodDecl
 import org.ucf.ml.utils.Context
 
-import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
 
@@ -37,9 +34,9 @@ class JavaParser extends Visitor  {
     } else {
       import com.github.javaparser.printer.{DotPrinter, XmlPrinter, YamlPrinter}
       val context = format match {
-        case "xml" => (new XmlPrinter(true)).output(cu)
-        case "dot" => (new DotPrinter(true)).output(cu)
-        case "ymal" | _ => (new YamlPrinter(true)).output(cu)
+        case "xml" => new XmlPrinter(true).output(cu)
+        case "dot" => new DotPrinter(true).output(cu)
+        case "ymal" | _ => new YamlPrinter(true).output(cu)
       }
       if (outPath != null)
         write(outPath, context = context)
@@ -48,7 +45,7 @@ class JavaParser extends Visitor  {
     }
   } catch {
     case e:Exception =>{
-      logger.error(f"Write file ${outPath} failed in the format of ${format}")}
+      logger.error(f"Write file $outPath failed in the format of $format")}
       e.printStackTrace()
   }
 
@@ -63,6 +60,26 @@ class JavaParser extends Visitor  {
     val source = Granularity.apply(sourcePath, granularity, isFile).getSourceCode()
     StaticJavaParser.parse(source)
   }
+
+  def getBPEComplationUnit(sourcePath:String, ctx:Context,
+                           granularity:Value, isFile:Boolean = true): CompilationUnit = {
+    val cu = getComplationUnit(sourcePath, granularity, isFile)
+    if (ctx.bpe_enable) {
+      val bpe = getBytePairEncodingFromCompilation(cu)
+      bpe.foreach(ele => ctx.bpe_map.getNewContent(ele, 0))
+      var source = Granularity.apply(sourcePath, granularity, isFile).getSourceCode()
+
+      ctx.bpe_map.getData.foreach {
+        case (key, value) => {
+          val replace_source = source
+          source = replace_source.replace(key, value(0).split("_")(0))
+        }
+      }
+      StaticJavaParser.parse(source)
+    } else cu
+  }
+
+
 
   implicit class getASTDiffScore(ast: AstComparator){
     def getDiffScore(buggy:String, fixed:String) = {
@@ -99,6 +116,7 @@ class JavaParser extends Visitor  {
     context.get_buggy_abstract()
   }
 
+
   def genCombinedFiles(buggy_dir:String,
                        fixed_dir:String,
                        output_dir:String): Unit = {
@@ -127,22 +145,22 @@ class JavaParser extends Visitor  {
           val dummpy = buggy_class(0)
           val members = dummpy.getMembers
           if (members.nonEmpty) members(0) else {
-            logger.info(s"[Failed]-Method: ${buggy}")
+            logger.info(s"[Failed]-Method: $buggy")
             null
           }
         } else {
-          logger.info(s"[Failed]-Class: ${buggy}")
+          logger.info(s"[Failed]-Class: $buggy")
           null
         }
         val fixed_m = if (fixed_class.nonEmpty) {
           val dummpy = fixed_class(0)
           val members = dummpy.getMembers
           if (members.nonEmpty) members(0) else {
-            logger.info(s"[Failed]-Method: ${fixed}")
+            logger.info(s"[Failed]-Method: $fixed")
             null
           }
         } else {
-          logger.info(s"[Failed]-Class: ${fixed}")
+          logger.info(s"[Failed]-Class: $fixed")
           null
         }
 
@@ -159,9 +177,9 @@ class JavaParser extends Visitor  {
         nums_line = nums_line + 1
       }
     }
-    logger.info(s"The total ${nums_line}, found ${cnt}, failed ${fail_cnt}")
-    write(s"${output_dir}/buggy_src.txt", buggy_src.mkString("\n"))
-    write(s"${output_dir}/fixed_src.txt", fixed_src.mkString("\n"))
+    logger.info(s"The total $nums_line, found $cnt, failed $fail_cnt")
+    write(s"$output_dir/buggy_src.txt", buggy_src.mkString("\n"))
+    write(s"$output_dir/fixed_src.txt", fixed_src.mkString("\n"))
   }
 
 

@@ -33,8 +33,10 @@ class TestAbstract extends TestUtils {
         |        int a =3, b, i = ed;
         |        int ad = 7;
         |        Integer bb = ad + cc;
-        |        for(i = 0; i < 10; i++)
+        |        for(i = 0; i < 10; i++){
+        |           int bb = 3;
         |           bb = bb + ed;
+        |        }
         |    }
         |}
         |""".stripMargin
@@ -47,7 +49,7 @@ class TestAbstract extends TestUtils {
   }
 
   @Test def testAbstractFile(): Unit ={
-    val input = "data/small/raw/buggy/29932.java"
+    val input = "data/small/raw/error/29932.java"
     get_abstract_code(input, METHOD)
   }
 

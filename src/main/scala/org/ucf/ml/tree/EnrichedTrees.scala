@@ -1475,14 +1475,14 @@ trait EnrichedTrees extends utils.Common {
 
       if (scope.isPresent) {
         val full_name = scope.get().asString() + "." + name.asString()
-        if (ctx.ident_maps.getIdioms.contains(full_name) && ctx.isAbstract)
+        if (ctx.type_maps.getIdioms.contains(full_name) && ctx.isAbstract)
           ctx.appendPosition(full_name, index = 0, parent = node)
         else {
           if (isScopeExpand(scope.get(), ctx)) {
             scope.get().genCode(ctx, numsIntent, tgt, code_scope)
           } else {
             if (ctx.isAbstract) {
-              ctx.appendPosition(ctx.ident_maps.getNewContent(scope.get().asString(), code_scope), position = name.genPosition(ctx))
+              ctx.appendPosition(ctx.type_maps.getNewContent(scope.get().asString(), code_scope), position = name.genPosition(ctx))
             } else {
               scope.get().genCode(ctx, numsIntent, tgt, code_scope)
             }
@@ -1604,10 +1604,33 @@ trait EnrichedTrees extends utils.Common {
 
   def isScopeExpand(scope:Node, ctx:Context):Boolean = {
 
+    /**
+     * If the scope is belong to idioms or keywords, expand it
+     */
+    if (ctx.ident_maps.getIdioms.contains(scope.toString) ||
+      ctx.ident_maps.getKeywords.contains(scope.toString()))
+      return true
+
     val allPaths = new ListBuffer[Node]
     getAllScopePath(scope, allPaths)
 
-    if (ctx.bpe_enable) {
+    /**
+     * Along with scope data path, if exist one of nodes' name is already
+     * defined, then we need to expand it.
+     *
+     * such as: a.b.c() --> a or b is defined
+     */
+    val alreadyDef = allPaths.toList.map( node => node match {
+      case node:NameExpr => ctx.variable_maps.contain(node.getNameAsString) || ctx.ident_maps.contain(node.getNameAsString)
+      case node:MethodCallExpr => ctx.method_maps.contain(node.getNameAsString)
+      case expr:MethodReferenceExpr => ctx.method_maps.contain(expr.getIdentifier)
+      case node:ObjectCreationExpr => ctx.type_maps.contain(node.getType.asString())
+      case node:FieldAccessExpr => ctx.ident_maps.contain(node.getNameAsString)
+      case node:ClassOrInterfaceType => ctx.type_maps.contain(node.getNameAsString)
+      case _ => false
+    }).reduce(_ || _)
+
+    if (ctx.bpe_enable && ! alreadyDef) {
       // if the root path of scope is identified by BPE, then return false and do not expand
       if (ctx.bpe_map.contain(scope.toString)) return false
       val bpe = allPaths.filter(node => ctx.bpe_map.contain(node.toString))
@@ -1615,11 +1638,6 @@ trait EnrichedTrees extends utils.Common {
       // then return true and we need to expand it
       if (! bpe.isEmpty) return true
     }
-
-
-    if (ctx.ident_maps.getIdioms.contains(scope.toString) ||
-      ctx.ident_maps.getKeywords.contains(scope.toString()))
-      return true
 
 //    if (logger.isDebugEnabled) {
 //      val scope_name = getScopeNodeName(scope)
@@ -1642,22 +1660,7 @@ trait EnrichedTrees extends utils.Common {
     if (allPaths.head.isInstanceOf[ArrayAccessExpr])
       return true
 
-    /**
-     * Along with scope data path, if exist one of nodes' name is already
-     * defined, then we need to expand it.
-     *
-     * such as: a.b.c() --> a or b is defined
-     */
-    allPaths.toList.map(
-      node => node match {
-        case node:NameExpr => ctx.variable_maps.contain(node.getNameAsString)
-        case node:MethodCallExpr => ctx.method_maps.contain(node.getNameAsString)
-        case expr:MethodReferenceExpr => ctx.method_maps.contain(expr.getIdentifier)
-        case node:ObjectCreationExpr => ctx.type_maps.contain(node.getType.asString())
-        case node:FieldAccessExpr => ctx.ident_maps.contain(node.getNameAsString)
-        case node:ClassOrInterfaceType => ctx.type_maps.contain(node.getNameAsString)
-        case _ => false
-    }).reduce(_ || _)
+    alreadyDef
   }
 
   def getScopeNodeName(scope:Node):String = scope match {

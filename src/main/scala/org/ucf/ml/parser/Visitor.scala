@@ -117,75 +117,64 @@ trait Visitor extends EnrichedTrees {
     }
   }
 
+  def get_max_byte_pairs(tokens: List[String]) = {
+    val identifier = "[_a-zA-Z][_a-zA-Z0-9]*"
+    val right = tokens.drop(1).asInstanceOf[List[String]] :+ "NULL"
+    val zipped_tokens = tokens.zip(right)
+    val count = zipped_tokens.groupBy(identity).mapValues(_.size)
+    val condidates = count.filter {
+      case ((key1, key2), value) => {
+        (key1.matches(s"${identifier}[.${identifier}]*") && key2 == ".") ||
+          (key1.matches(s"${identifier}[.${identifier}]*") && key2.matches(s"${identifier}[.${identifier}]*"))
+      }
+    }.toList.sortBy {
+      case ((key1, key2), value) => tokens.indexOf(key1)
+    }
+    val mergedCondidates = condidates.filter(_._2 > 1)
+
+    if (mergedCondidates.isEmpty) null else {
+      // if the value is less  than 2,
+      // that means there is no duplicated combination
+      mergedCondidates.maxBy(_._2)
+    }
+  }
+
   def getBytePairEncodingFromCompilation(cu: CompilationUnit) = {
     val identifier = "[_a-zA-Z][_a-zA-Z0-9]*"
-
-    def get_max_pairs(tokens: List[String]) = {
-      val left = tokens.drop(1).asInstanceOf[List[String]] :+ "NULL"
-      val zipped_tokens = tokens.zip(left)
-      val count = zipped_tokens.groupBy(identity).mapValues(_.size)
-      val condidates = count.filter {
-        case ((key1, key2), value) => {
-          (key1.matches(s"${identifier}[.${identifier}]*") && key2 == ".") ||
-//            (key1.matches(s"${identifier}[.${identifier}]*[.]") && key2.matches(s"${identifier}[.${identifier}]*[.]")) ||
-            (key1.matches(s"${identifier}[.${identifier}]*[.]") && key2.matches(s"${identifier}[.${identifier}]*"))
-        }
-      }.toList.sortBy {
-        case ((key1, key2), value) => tokens.indexOf(key1)
-      }
-
-      if (condidates.isEmpty)
-        null
-      else
-        condidates.maxBy(_._2)
-    }
-
     val code_tokens = cu.getTokenRange.get()
       .toList.filter(
       e => e.getText != " " && e.getText != "\n").map(_.getText)
 
     val mergedList = new ListBuffer[String]
     var scan = true
-    var skip = false
-    var nums_token = code_tokens.size
+    var skip_next = false
 
     while(scan) {
-      val tokens = if (mergedList.isEmpty)
-        code_tokens
-      else {
+      val tokens = if (mergedList.isEmpty) code_tokens else {
         mergedList.toList
       }
-      val max_pairs = get_max_pairs(tokens)
+      val max_pairs = get_max_byte_pairs(tokens)
       if (max_pairs != null) {
-        val ((key1, key2), value) = max_pairs
-        if (value > 1) {
-          mergedList.clear()
-          for (i <- 0 until tokens.size - 1) {
-            if (!skip) {
-              if (tokens(i) == key1 && tokens(i + 1) == key2) {
-                mergedList.append(key1 + key2)
-                skip = true
-              } else {
-                mergedList.append(tokens(i))
-              }
+        val ((key1, key2), _) = max_pairs
+        mergedList.clear()
+        for (i <- tokens.indices) {
+          if (skip_next) skip_next = false else {
+            if ((i + 1) < tokens.size && tokens(i) == key1 && tokens(i + 1) == key2) {
+              mergedList.append(key1 + key2)
+              skip_next = true
             } else {
-              skip = false
+              mergedList.append(tokens(i))
             }
           }
-        } else {
-          scan = false
         }
-      } else
-        scan = false
+      } else scan = false
     }
 
     val results = mergedList.filter(
-//      ele => ele.split("\\.").size > 1 && ele.matches("^[a-zA-Z_.][a-zA-Z0-9_.]*")
       ele => ele.split("\\.").size > 1 && ele.matches(s"${identifier}[.${identifier}]*")
-    ).distinct.map(ele =>
+    ).distinct.map( ele =>
       if (ele.last == '.') ele.dropRight(1) else ele
     )
-
     results.toList
   }
 

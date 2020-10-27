@@ -84,7 +84,6 @@ class JavaParser extends Visitor  {
                            granularity:Value, isFile:Boolean = true): CompilationUnit = {
     val cu = getComplationUnit(sourcePath, granularity, isFile)
     if (ctx.bpe_enable) {
-      println(cu)
       val bpe = getBytePairEncodingFromCompilation(cu)
       bpe.foreach(ele => ctx.bpe_map.getNewContent(ele, 0))
     }

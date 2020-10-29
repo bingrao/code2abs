@@ -67,16 +67,24 @@ class TestASTDiff extends TestUtils {
     var cnt_3 = 0
     var cnt_others = 0
     var cnt = 0
+    var fail_cnt = 0
 
     for ((src, pred) <- Source.fromFile(fixed_src).getLines zip Source.fromFile(fixed_pred_best).getLines ) {
-      cnt = cnt + 1
-      val editScript  = getASTDiff(src, pred, METHOD, false)
-      editScript.getAllOperations.size() match {
-        case 0 => cnt_0 = cnt_0 + 1
-        case 1 => cnt_1 = cnt_1 + 1
-        case 2 => cnt_2 = cnt_2 + 1
-        case 3 => cnt_3 = cnt_3 + 1
-        case _ => cnt_others = cnt_others + 1
+      try {
+        val editScript = getASTDiff(src, pred, METHOD, false)
+        editScript.getAllOperations.size() match {
+          case 0 => cnt_0 = cnt_0 + 1
+          case 1 => cnt_1 = cnt_1 + 1
+          case 2 => cnt_2 = cnt_2 + 1
+          case 3 => cnt_3 = cnt_3 + 1
+          case _ => cnt_others = cnt_others + 1
+        }
+      } catch {
+        case e: Exception => {
+          fail_cnt = fail_cnt + 1
+        }
+      } finally {
+        cnt = cnt + 1
       }
 
       if (cnt % 2000 == 0)

@@ -39,23 +39,58 @@ class TestASTDiff extends TestUtils {
     val cu = getComplationUnit(inputClass, CLASS, false)
     printAST(outPath=null, cu = cu, format = "ymal")
   }
-//  @Test def testAstDiff(): Unit ={
-//    val file_index = 1
-//    val buggy = s"data/small/raw/buggy/${file_index}.java"
-//    val fixed = s"data/small/raw/fixed/${file_index}.java"
-//    val editScript  = getASTDiff(buggy, fixed, METHOD)
-//    val all_actitions = editScript.getAllOperations()
-//    println(all_actitions)
-//
-//
-//
-//    val root_acitions = editScript.getRootOperations()
-//
-//    println("\n" + root_acitions)
-//
-//    println(all_actitions.size(), root_acitions.size())
-//  }
-//
+
+  @Test def testAstDiff(): Unit ={
+    val file_index = 1
+    val buggy = s"data/small/raw/buggy/${file_index}.java"
+    val fixed = s"data/small/raw/fixed/${file_index}.java"
+    val editScript  = getASTDiff(buggy, fixed, METHOD)
+    val all_actitions = editScript.getAllOperations()
+    println(all_actitions)
+
+    val root_acitions = editScript.getRootOperations()
+
+    println("\n" + root_acitions)
+
+    println(all_actitions.size(), root_acitions.size())
+  }
+
+  def perf_count(n_best:Int = 1): Unit = {
+    import scala.io.Source
+    val step = 79000
+    val fixed_pred = s"data/small/predict/${step}/predictions_${n_best}_${n_best}.txt"
+    val fixed_pred_best = s"data/small/predict/${step}/predictions_${n_best}_${n_best}_best.txt"
+    val fixed_src = s"data/small/predict/${step}/test-fixed.txt"
+    var cnt_0 = 0
+    var cnt_1 = 0
+    var cnt_2 = 0
+    var cnt_3 = 0
+    var cnt_others = 0
+    var cnt = 0
+
+    for ((src, pred) <- Source.fromFile(fixed_src).getLines zip Source.fromFile(fixed_pred_best).getLines ) {
+      cnt = cnt + 1
+      val editScript  = getASTDiff(src, pred, METHOD, false)
+      editScript.getAllOperations.size() match {
+        case 0 => cnt_0 = cnt_0 + 1
+        case 1 => cnt_1 = cnt_1 + 1
+        case 2 => cnt_2 = cnt_2 + 1
+        case 3 => cnt_3 = cnt_3 + 1
+        case _ => cnt_others = cnt_others + 1
+      }
+
+      if (cnt % 2000 == 0)
+        logger.info(s"[${n_best}]-Total: ${cnt}, cnt_0: ${cnt_0}, cnt_1: ${cnt_1}, cnt_2: ${cnt_2}, cnt_3: ${cnt_3}, others: ${cnt_others}")
+    }
+    logger.info(s"[${n_best}]-Total: ${cnt}, cnt_0: ${cnt_0}, cnt_1: ${cnt_1}, cnt_2: ${cnt_2}, cnt_3: ${cnt_3}, others: ${cnt_others}")
+  }
+
+
+  @Test def testPerformance(): Unit = {
+    for(n_best <- List(1, 5, 10, 15)){
+      perf_count(n_best)
+    }
+  }
 
 
 

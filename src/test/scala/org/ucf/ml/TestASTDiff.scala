@@ -124,7 +124,7 @@ class TestASTDiff extends TestUtils {
       }
     }
 
-//    logger.info(s"Total [${cnt}], succecced [${succ_cnt}], faled [${fail_cnt}]-${input}")
+    logger.info(s"Total [${cnt}], succecced [${succ_cnt}], faled [${fail_cnt}]-${input}")
     source.close()
     List(cnt, succ_cnt, fail_cnt)
   }
@@ -134,8 +134,19 @@ class TestASTDiff extends TestUtils {
     val buggy_path = "data/small/processed/buggy.txt"
     val fixed_path = "data/small/processed/fixed.txt"
 
+    val buggy_files = readFile(buggy_path)
+    val fixed_files = readFile(fixed_path)
+
+    for(i <- buggy_files.indices) {
+      if (buggy_files(i) == fixed_files(i)) {
+        logger.info(s"[${i+1}]: ${buggy_files(i)}")
+      }
+    }
+
     _test(new File(buggy_path))
     _test(new File(fixed_path))
+//    val n_best = 15
+//    _test(new File(s"data/small/predict/79000/predictions_${n_best}_${n_best}_best.txt"))
   }
 
   @Test def testGeneratedCodeAll():Unit = {

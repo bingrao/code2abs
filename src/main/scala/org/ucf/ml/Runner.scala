@@ -2,18 +2,26 @@ package org.ucf.ml
 
 import parser.JavaParser
 import net.sourceforge.argparse4j.inf.{Namespace => ConfigNamespace}
+import org.ucf.ml.parallel.ASTDiffMaster
+
 import scala.collection.JavaConversions._
 
 /**
  * @author Bing
- * How to run jar file
+ *         How to run jar file
  *  1. Using Scala command
  * # export JAVA_OPTS="-Xmx32G -Xms1g -Xss512M -Dlog4j.configuration=file:///${ConfigPath}/log4j.properties"
- * # scala "${BinPath}"/java_abstract-1.0-jar-with-dependencies.jar "abstract" "${ConfigAbstract}"
+ * # scala "${BinPath}"/java_abstract-1.0-jar-with-dependencies.jar -config "${ConfigFile}" | tee -a "${LogFile}"
  *
  *  2. Using Java command
- * # export JAVA_OPTS="-Xmx32G -Xms1g -Xss512M -Dlog4j.configuration=file:///${ConfigPath}/log4j.properties"
- * # java "${JAVA_OPTS}" -cp "${BinPath}"/java_abstract-1.0-jar-with-dependencies.jar org.ucf.ml.App "abstract" "${ConfigAbstract}"
+ * # scala "${BinPath}"/java_abstract-1.0-jar-with-dependencies.jar -run_type "abstract" \
+ *         -buggy_path "examples/learning_fix/data/${dataset}/raw/buggy/" \
+ *         -fixed_path "examples/learning_fix/data/${dataset}/raw/fixed/" \
+ *         -output_dir "examples/learning_fix/data/${dataset}/" \
+ *         -idioms_path "examples/learning_fix/data/idioms/idioms.csv" \
+ *         -nums_worker 10 \
+ *         -with_position false \
+ *         -output_position false | tee -a "${LogFile}"
  */
 
 class Runner extends utils.Arguments {
@@ -40,10 +48,16 @@ class Runner extends utils.Arguments {
   }
 
   def gen_ast_diff(config: ConfigNamespace) = {
-    val src = config.getString("buggy_path")
-    val tgt = config.getString("fixed_path")
-    val javaPaser = new parser.JavaParser
-    javaPaser.getASTDiffCount(src, tgt, granularity = METHOD, isFile = false)
+    /**
+     * scala "${BinPath}"/java_abstract-1.0-jar-with-dependencies.jar -run_type "astdiff" \
+     *  -fixed_path "${FIXED_PATH}" \
+     *  -predt_path "${PREDT_PATH}" \
+     *  -n_best "${n_best}" \
+     *  -nums_worker "${nums_worker}" \
+     *  -output_dir "${OUTPUT_DIR}" | tee -a "${LogFile}"
+     */
+    val worker = new ASTDiffMaster(config)
+    worker.run()
   }
 
   def combine_java_files(config: ConfigNamespace) = {
@@ -57,11 +71,19 @@ class Runner extends utils.Arguments {
   }
 
   def gen_abstract_code(config: ConfigNamespace) = {
-    val config_path = config.getString("config")
-    val worker = new parallel.Master(config)
+    /**
+     * #  scala "${BinPath}"/java_abstract-1.0-jar-with-dependencies.jar -run_type "abstract" \
+     * #        -buggy_path "examples/learning_fix/data/${dataset}/raw/buggy/" \
+     * #        -fixed_path "examples/learning_fix/data/${dataset}/raw/fixed/" \
+     * #        -output_dir "examples/learning_fix/data/${dataset}/" \
+     * #        -idioms_path "examples/learning_fix/data/idioms/idioms.csv" \
+     * #        -nums_worker 10 \
+     * #        -with_position false \
+     * #        -output_position false | tee -a "${LogFile}"
+     */
+    val worker = new parallel.AbstractMaster(config)
     worker.run()
   }
-
 }
 
 

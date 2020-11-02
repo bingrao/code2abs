@@ -4,12 +4,14 @@ import java.io.{File, FileWriter, PrintWriter}
 import java.nio.file.{Files, Paths}
 import java.util.stream.Collectors
 import scala.collection.mutable
+import scala.io.Source
 import scala.collection.JavaConversions._
 
 
 trait Common {
 
   val logger = new Logging(this.getClass.getName)
+
 
   def write(path:String, context:String) = {
     val p = (new File(path)).getParentFile
@@ -55,6 +57,13 @@ trait Common {
   }
 
   /*################################# Helper Functions #####################################*/
+  def readFile(filename: String): List[String] = {
+    val bufferedSource = Source.fromFile(filename)
+    val lines = (for (line <- bufferedSource.getLines()) yield line).toList
+    bufferedSource.close
+    lines
+  }
+
   def loadAndCheckData(srcPath:String, tgtPath:String):(List[String], List[String]) = {
     val srcFiles = getListOfFiles(srcPath)
     val tgtFiles = getListOfFiles(tgtPath)
@@ -77,4 +86,31 @@ trait Common {
 
     (srcFiles.map(_.getPath), tgtFiles.map(_.getPath))
   }
+
+  // load fixed and prediction datasets with n_best
+  def loadAndCheckData(buggyPath:String,
+                       fixedPath:String,
+                       PredtPath:String,
+                       n_best:Int):(List[String], List[String], List[String]) = {
+
+    val buggyFiles = readFile(buggyPath)
+    val fixedFiles = readFile(fixedPath)
+    val predtFiles = readFile(PredtPath)
+
+    logger.debug(f"Loading ${buggyFiles.size} java files from ${buggyPath} with n_best ${n_best}")
+    logger.debug(f"Loading ${fixedFiles.size} java files from ${fixedPath} with n_best ${n_best}")
+    logger.debug(f"Loading ${predtFiles.size} java files from ${PredtPath} with n_best ${n_best}")
+
+    if (buggyFiles.size != fixedFiles.size) {
+      logger.error(f"The sizes of source (${buggyFiles.size}) with n_best ${n_best} and target (${fixedFiles.size}) do not match ...")
+      System.exit(-1)
+    }
+
+    if (fixedFiles.size * n_best != predtFiles.size) {
+      logger.error(f"The sizes of source (${fixedFiles.size}) with n_best ${n_best} and target (${predtFiles.size}) do not match ...")
+      System.exit(-1)
+    }
+    (buggyFiles, fixedFiles, predtFiles)
+  }
+
 }

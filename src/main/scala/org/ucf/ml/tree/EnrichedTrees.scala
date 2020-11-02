@@ -213,7 +213,14 @@ trait EnrichedTrees extends utils.Common {
 
         // 3. type parameters public interface Predicate<T> {}
         val tps = node.getTypeParameters
-        tps.foreach(_.genCode(ctx, numsIntent, tgt, code_scope))
+
+        if (tps.size() > 0) ctx.appendPosition("<", index = 2, parent = node)
+        for (i <- tps.indices){
+          tps.get(i).genCode(ctx, numsIntent, node.getName, code_scope + 1)
+          if (i < tps.size() - 1)
+            ctx.appendPosition(",", index = 1, parent = node)
+        }
+        if (tps.size() > 0) ctx.appendPosition(">", index = 2, parent = node)
 
         ctx.appendPosition("{", index = 1, parent = node)
         
@@ -321,7 +328,17 @@ trait EnrichedTrees extends utils.Common {
 //      node.getAccessSpecifier
       node.getModifiers.foreach(_.genCode(ctx, numsIntent, tgt, code_scope))
 
-      node.getTypeParameters.foreach(_.genCode(ctx, numsIntent, tgt, code_scope))
+      val tps = node.getTypeParameters
+
+      if (tps.size() > 0) ctx.appendPosition("<", index = 2, parent = node)
+      for (i <- tps.indices){
+        tps.get(i).genCode(ctx, numsIntent, node.getName, code_scope + 1)
+        if (i < tps.size() - 1)
+          ctx.appendPosition(",", index = 1, parent = node)
+      }
+      if (tps.size() > 0) ctx.appendPosition(">", index = 2, parent = node)
+
+
 
       /*Method name, such as hello*/
       if (ctx.isAbstract)
@@ -365,6 +382,17 @@ trait EnrichedTrees extends utils.Common {
       /*modifiers, such as public*/
       val modifiers = node.getModifiers
       modifiers.foreach(modifier => modifier.genCode(ctx, numsIntent, node.getName, code_scope))
+
+      val tps = node.getTypeParameters
+
+      if (tps.size() > 0) ctx.appendPosition("<", index = 2, parent = node)
+      for (i <- tps.indices){
+        tps.get(i).genCode(ctx, numsIntent, node.getName, code_scope + 1)
+        if (i < tps.size() - 1)
+          ctx.appendPosition(",", index = 1, parent = node)
+      }
+      if (tps.size() > 0) ctx.appendPosition(">", index = 2, parent = node)
+
 
       /*Method return type, such as void, int, string*/
       node.getType.genCode(ctx, numsIntent, node.getName, code_scope)
@@ -921,39 +949,39 @@ trait EnrichedTrees extends utils.Common {
 
       val scope = node.getScope
       val arguments = node.getArguments
+      val tps = node.getTypeArguments
 
       if (scope.isPresent) {
-        val full_name = scope.get().toString + "." + node.getName.asString()
-        if (ctx.ident_maps.getIdioms.contains(full_name) && ctx.isAbstract)
-          ctx.appendPosition(full_name, index = 0, parent = node)
-        else {
-          if (isScopeExpand(scope.get(), ctx)) {
-            scope.get().genCode(ctx, numsIntent, tgt, code_scope)
-          } else {
-            if (ctx.isAbstract) {
-              val scope_value = if (ctx.variable_maps.contain(scope.get().toString, code_scope))
-                ctx.variable_maps.get_match_content(scope.get().toString, code_scope)
-              else
-                ctx.ident_maps.getNewContent(scope.get().toString, code_scope)
-              ctx.appendPosition(scope_value, position = scope.get().genPosition(ctx))
-            } else
-              scope.get().genCode(ctx, numsIntent, tgt, code_scope)
-          }
-          ctx.appendPosition(".", index = 0, parent = node)
-
+        if (isScopeExpand(scope.get(), ctx)) {
+          scope.get().genCode(ctx, numsIntent, tgt, code_scope)
+        } else {
           if (ctx.isAbstract) {
-            val funcName = ctx.method_maps.getNewContent(node.getName.asString(), code_scope)
-            ctx.appendPosition(funcName, position = node.getName.genPosition(ctx))
+            val scope_value = if (ctx.variable_maps.contain(scope.get().toString, code_scope))
+              ctx.variable_maps.get_match_content(scope.get().toString, code_scope)
+            else
+              ctx.ident_maps.getNewContent(scope.get().toString, code_scope)
+            ctx.appendPosition(scope_value, position = scope.get().genPosition(ctx))
           } else
-            node.getName.genCode(ctx, numsIntent, tgt, code_scope)
+            scope.get().genCode(ctx, numsIntent, tgt, code_scope)
         }
-      } else {
-        if (ctx.isAbstract) {
-          val funcName = ctx.method_maps.getNewContent(node.getName.asString(), code_scope)
-          ctx.appendPosition(funcName, position = node.getName.genPosition(ctx))
-        } else
-          node.getName.genCode(ctx, numsIntent, tgt, code_scope)
+        ctx.appendPosition(".", index = 0, parent = node)
       }
+
+      if (tps.isPresent) {
+        ctx.appendPosition("<", index = 2, parent = node)
+        for (i <- tps.get().indices) {
+          tps.get().get(i).genCode(ctx, numsIntent, node.getName, code_scope + 1)
+          if (i < tps.get().size() - 1)
+            ctx.appendPosition(",", index = 1, parent = node)
+        }
+        ctx.appendPosition(">", index = 2, parent = node)
+      }
+
+      if (ctx.isAbstract) {
+        val funcName = ctx.method_maps.getNewContent(node.getName.asString(), code_scope)
+        ctx.appendPosition(funcName, position = node.getName.genPosition(ctx))
+      } else
+        node.getName.genCode(ctx, numsIntent, tgt, code_scope)
 
 
 
@@ -1446,7 +1474,7 @@ trait EnrichedTrees extends utils.Common {
       val name = node.getName
       val typeBound = node.getTypeBound
 
-      ctx.appendPosition("<", index = 0, parent = node)
+//      ctx.appendPosition("<", index = 0, parent = node)
 
       if (ctx.isAbstract)
         ctx.appendPosition(ctx.type_maps.getNewContent(name.asString(), code_scope), position = name.genPosition(ctx))
@@ -1463,7 +1491,7 @@ trait EnrichedTrees extends utils.Common {
         }
 
       }
-      ctx.appendPosition(">", index = -3, parent = node)
+//      ctx.appendPosition(">", index = -3, parent = node)
     }
   }
 
@@ -1627,7 +1655,8 @@ trait EnrichedTrees extends utils.Common {
       case node:ObjectCreationExpr => ctx.type_maps.contain(node.getType.asString())
       case node:FieldAccessExpr => ctx.ident_maps.contain(node.getNameAsString)
       case node:ClassOrInterfaceType => ctx.type_maps.contain(node.getNameAsString)
-      case _ => false
+//      case node: ThisExpr => true
+      case node:Node => if (ctx.variable_maps.getKeywords.contains(node.toString)) true else false
     }).reduce(_ || _)
 
     if (ctx.bpe_enable && ! alreadyDef) {

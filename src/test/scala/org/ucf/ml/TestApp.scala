@@ -3,6 +3,7 @@ package org.ucf.ml
   * @author
   */
 import org.junit.Test
+import org.ucf.ml.parallel.ASTDiffMaster
 
 class ScalaTestAPP extends TestUtils {
   @Test def testAdd() {
@@ -41,10 +42,29 @@ class ScalaTestAPP extends TestUtils {
       "with_position" -> false.asInstanceOf[Object],
       "output_position" -> false.asInstanceOf[Object],
       "output_dir" -> "data/small/processed/total/",
-      "nums_worker" -> 1.asInstanceOf[Object]).asJava
+      "nums_worker" -> 10.asInstanceOf[Object]).asJava
 
     import net.sourceforge.argparse4j.inf.Namespace
-    val worker = new parallel.Master(new Namespace(config))
+    val worker = new parallel.AbstractMaster(new Namespace(config))
+    worker.run()
+  }
+
+
+  @Test def testASTDiffParallel(): Unit ={
+    import scala.jdk.CollectionConverters._
+    val step = 100000
+    val n_best = 1
+    val nums_worker = 16
+    val config = Map[String, Object]("run_type" -> "astdiff",
+      "predt_path"-> s"data/small/predict/${step}/predictions_${n_best}_${n_best}.txt",
+      "fixed_path" -> s"data/small/predict/${step}/test-fixed.txt",
+      "buggy_path" -> s"data/small/predict/${step}/test-buggy.txt",
+      "output_dir" -> "data/small/predict/",
+      "n_best" -> n_best.asInstanceOf[Object],
+      "nums_worker" -> nums_worker.asInstanceOf[Object]).asJava
+
+    import net.sourceforge.argparse4j.inf.Namespace
+    val worker = new ASTDiffMaster(new Namespace(config))
     worker.run()
   }
 

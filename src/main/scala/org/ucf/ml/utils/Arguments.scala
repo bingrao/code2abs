@@ -29,10 +29,19 @@ class Arguments extends Common {
 
   def ast_diff_abstraction(parser: ArgumentParser): Unit = {
     val group = parser.addArgumentGroup("astdiff")
+    group.addArgument("-predt_path").help("The input path or directory for fixed code")
+    group.addArgument("-n_best")
+      .`type`(classOf[Int])
+      .setDefault[Int](1).help("The number of n_best predictions")
   }
 
   def combine_abstraction(parser: ArgumentParser): Unit = {
     val group = parser.addArgumentGroup("combine")
+
+    group.addArgument("-measure")
+      .`type`(classOf[String])
+      .setDefault[String]("ast")
+      .help("the meausre fo")
 
   }
 

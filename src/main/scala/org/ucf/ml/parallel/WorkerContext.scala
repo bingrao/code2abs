@@ -9,36 +9,57 @@ import net.sourceforge.argparse4j.inf.{Namespace => ConfigNamespace}
 
 /**
  *
- * @param src_batch, a list of buggy (source) input files' path
- * @param tgt_batch, a list of fixed (target) input files' path
+ * @param buggy_batch, a list of buggy (source) input files' path
+ * @param fixed_batch, a list of fixed (target) input files' path
  * @param idioms, a bag of idioms vocabulary keep by this project
  * @param worker_id, integer id assigned by master
  */
-class WorkerContext(src_batch:List[String] = null,
-                    tgt_batch:List[String] = null,
-                    idioms:mutable.HashSet[String],
+class WorkerContext(buggy_batch:List[String],
+                    fixed_batch:List[String],
+                    predt_batch:List[String] = null,
+                    idioms:mutable.HashSet[String] = null,
                     worker_id:Int,
+                    n_best:Int = 1,
                     granularity: Value = METHOD,
-                    config: ConfigNamespace) {
+                    batch_size:Int,
+                    isPosition:Boolean=false) extends Serializable {
 
   private val buggy_abstract = new StringBuilder
   private val fixed_abstract = new StringBuilder
+  private val predt_abstract = new StringBuilder
 
-  def append_buggy(content:String) = this.buggy_abstract.append(content)
-  def append_fixed(content:String) = this.fixed_abstract.append(content)
 
-  def get_buggy_abstract = buggy_abstract.toString()
-  def get_fixed_abstract = fixed_abstract.toString()
+  def append_buggy(content:String): mutable.StringBuilder = this.buggy_abstract.append(content)
+  def append_fixed(content:String): mutable.StringBuilder = this.fixed_abstract.append(content)
+  def append_predt(content:String): mutable.StringBuilder = this.predt_abstract.append(content)
+
+  def get_buggy_abstract:String = buggy_abstract.toString()
+  def get_fixed_abstract:String = fixed_abstract.toString()
+  def get_predt_abstract:String = predt_abstract.toString()
 
   val javaPaser = new parser.JavaParser
-  val batch_size = scala.math.min(src_batch.size, tgt_batch.size)
+  def get_batch_size: Int = batch_size
 
-  def get_idioms = this.idioms
-  def get_src_batch = this.src_batch
-  def get_tgt_batch = this.tgt_batch
-  def get_work_id = this.worker_id
-  def get_granularity = this.granularity
+  def size:Int = scala.math.min(fixed_batch.size, buggy_batch.size)
 
-  def isWithPosition: lang.Boolean = config.getBoolean("with_position")
+  def get_idioms:mutable.HashSet[String] = this.idioms
 
+  def get_buggy_batch(index:Int):String = this.buggy_batch(index)
+  def get_fixed_batch(index:Int):String = this.fixed_batch(index)
+  def get_predt_batch(index:Int): List[String] = this.predt_batch.slice(index*n_best, (index+1)*n_best)
+
+  def get_work_id:Int = this.worker_id
+  def get_granularity:Value = this.granularity
+  def get_n_best:Int = n_best
+
+  var cnt_0 = 0
+  var cnt_1 = 0
+  var cnt_2 = 0
+  var cnt_3 = 0
+  var cnt_4 = 0
+  var cnt_error = 0
+  var cnt_other = 0
+
+//  def isWithPosition: lang.Boolean = config.getBoolean("with_position")
+  def isWithPosition: lang.Boolean = isPosition
 }

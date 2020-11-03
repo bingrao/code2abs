@@ -1,0 +1,8 @@
+"run_type": "abstract"
+"buggy_path": "examples/learning_fix/data/small/raw/buggy/"
+"fixed_path": "examples/learning_fix/data/small/raw/fixed/"
+"output_dir": "examples/learning_fix/data/small/"
+"idioms_path": "examples/learning_fix/data/idioms/idioms.csv"
+"nums_worker": 10
+"with_position": false
+"output_position": false

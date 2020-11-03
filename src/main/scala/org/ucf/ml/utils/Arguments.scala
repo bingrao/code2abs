@@ -41,7 +41,7 @@ class Arguments extends Common {
     group.addArgument("-measure")
       .`type`(classOf[String])
       .setDefault[String]("ast")
-      .help("the meausre fo")
+      .help("So far only support ast diff compare")
 
   }
 

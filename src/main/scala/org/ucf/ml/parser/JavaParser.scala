@@ -199,8 +199,10 @@ class JavaParser extends Visitor  {
                        output_dir:String,
                        idioms_path:String,
                        max_length:Int = 2400): Unit = {
-    val src_source = Source.fromFile(src_path).getLines()
-    val tgt_source = Source.fromFile(tgt_path).getLines()
+//    val src_source = Source.fromFile(src_path).getLines()
+//    val tgt_source = Source.fromFile(tgt_path).getLines()
+    val src_source = readFile(src_path)
+    val tgt_source = readFile(tgt_path)
     var cnt = 1
     var fail_cnt = 0
     var succ_cnt = 0
@@ -226,9 +228,9 @@ class JavaParser extends Visitor  {
 
     for ((src, tgt) <- src_source.zip(tgt_source)) {
       line_nums = line_nums + 1
-//      if (src.contains("<START_BUG>") && src.contains("<END_BUG>") && src.size < max_length) {
-      if (src.contains("<START_BUG>") && src.contains("<END_BUG>")) {
-        try {
+
+      try {
+        if(src.contains("<START_BUG>") && src.contains("<END_BUG>")) {
           val new_source = src.replace("<START_BUG>", "int START_BUG = 0;")
             .replace("<END_BUG>", "int END_BUG = 0;")
 
@@ -239,7 +241,6 @@ class JavaParser extends Visitor  {
             VariableDecl().visit(m, names)
             names.contains("START_BUG")
           })
-
           method.foreach(m => {
             val src = m.toString(config).replace("int START_BUG = 0;", "<START_BUG>")
               .replace("int END_BUG = 0;", "<END_BUG>")
@@ -274,24 +275,38 @@ class JavaParser extends Visitor  {
 
           })
           succ_cnt = succ_cnt + 1
-        } catch {
-          case e: Exception => {
-            fail_cnt = fail_cnt + 1
-          }
-        } finally {
-          cnt = cnt + 1
+        } else {
+          val src_cu = getComplationUnit(src, METHOD, false)
+          val tgt_cu = getComplationUnit(tgt, METHOD, false)
+
+          val context = new Context(idioms = idioms, METHOD)
+          _task(context, src_cu, SOURCE)
+          _task(context, tgt_cu, TARGET)
+
+          buggy.append(context.get_buggy_abstract())
+          buggy_src.append(src)
+          fixed.append(context.get_fixed_abstract())
+          fixed_src.append(tgt)
+          find_nums = find_nums + 1
         }
+      } catch {
+        case e: Exception => {
+          fail_cnt = fail_cnt + 1
+        }
+      } finally {
+        cnt = cnt + 1
       }
+
     }
     logger.info(s"Total [${line_nums}-${cnt}], succecced [${succ_cnt}], faled [${fail_cnt}], find [${find_nums}]")
 
     logger.info(s"Buggy code: ${buggy.size}, Fixed code: ${fixed.size}")
 
-    write(s"${output_dir}/buggy_abstract.txt", buggy.mkString("\n"))
-    write(s"${output_dir}/buggy_src.txt", buggy_src.mkString("\n"))
+    write(s"${output_dir}/total/buggy.txt", buggy.mkString("\n"))
+    write(s"${output_dir}/total/buggy_src.txt", buggy_src.mkString("\n"))
 
-    write(s"${output_dir}/fixed_abstract.txt", fixed.mkString("\n"))
-    write(s"${output_dir}/fixed_src.txt", fixed_src.mkString("\n"))
+    write(s"${output_dir}/total/fixed.txt", fixed.mkString("\n"))
+    write(s"${output_dir}/total/fixed_src.txt", fixed_src.mkString("\n"))
   }
 
 

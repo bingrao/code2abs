@@ -1,0 +1,6 @@
+"run_type": "sequencer"
+"buggy_path": "examples/learning_fix/data/big/raw/buggy-src-total.txt"
+"fixed_path": "examples/learning_fix/data/big/raw/fixed-src-total.txt"
+"output_dir": "examples/learning_fix/data/big/"
+"idioms_path": "examples/learning_fix/data/idioms/idioms-sequencer.csv"
+"max_length": 2400

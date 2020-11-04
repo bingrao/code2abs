@@ -1,11 +1,7 @@
 package org.ucf.ml
 package parallel
 import java.lang
-
-import org.ucf.ml.utils.Config
-
 import scala.collection.mutable
-import net.sourceforge.argparse4j.inf.{Namespace => ConfigNamespace}
 
 /**
  *

@@ -3,8 +3,6 @@ package org.ucf.ml
 import gumtree.spoon.AstComparator
 import scala.collection.mutable
 
-
-
 case class SparkRunnerContext(buggy_batch: String = null,
                     fixed_batch: String = null,
                     predt_batch:List[String] = null,
@@ -131,10 +129,11 @@ object SparkRunner extends utils.Common {
       cnt_3 = cnt_3 + wtx.cnt_3
       cnt_4 = cnt_4 + wtx.cnt_4
       cnt_other = cnt_other + wtx.cnt_other  // > 4
-      cnt_error = cnt_error + wtx.cnt_error // cannot pase
+      cnt_error = cnt_error + wtx.cnt_error // parse failed
     })
 
-    logger.info(s"[Performance]-[ast]-[${n_best}]-[${fixed_files.size}]\tcounting_[0-4, >4, error]: ${cnt_0} ${cnt_1} ${cnt_2} ${cnt_3} ${cnt_4} ${cnt_other} ${cnt_error}")
+    logger.info(s"[Performance]-[ast]-[${n_best}]-[${fixed_files.size}]\tcounting_[0-4, >4, error]: " +
+      s"${cnt_0} ${cnt_1} ${cnt_2} ${cnt_3} ${cnt_4} ${cnt_other} ${cnt_error}")
 
   }
 }

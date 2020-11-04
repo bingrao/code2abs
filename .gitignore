@@ -72,7 +72,7 @@ buildNumber.properties
 !/.mvn/wrapper/maven-wrapper.jar
 
 # Intellij IDA
-.idea/
+.idea/*
 *.iml
 log4j-application*
 

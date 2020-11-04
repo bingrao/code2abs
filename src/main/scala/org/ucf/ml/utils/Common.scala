@@ -102,12 +102,14 @@ trait Common {
     logger.debug(f"Loading ${predtFiles.size} java files from ${PredtPath} with n_best ${n_best}")
 
     if (buggyFiles.size != fixedFiles.size) {
-      logger.error(f"The sizes of source (${buggyFiles.size}) with n_best ${n_best} and target (${fixedFiles.size}) do not match ...")
+      logger.error(f"The sizes of source (${buggyFiles.size}) " +
+        f"with n_best ${n_best} and target (${fixedFiles.size}) do not match ...")
       System.exit(-1)
     }
 
     if (fixedFiles.size * n_best != predtFiles.size) {
-      logger.error(f"The sizes of source (${fixedFiles.size}) with n_best ${n_best} and target (${predtFiles.size}) do not match ...")
+      logger.error(f"The sizes of source (${fixedFiles.size}) " +
+        f"with n_best ${n_best} and target (${predtFiles.size}) do not match ...")
       System.exit(-1)
     }
     (buggyFiles, fixedFiles, predtFiles)

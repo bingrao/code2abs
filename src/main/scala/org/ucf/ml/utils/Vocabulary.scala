@@ -25,6 +25,22 @@ class Vocabulary(config: ConfigNamespace) extends parser.JavaParser {
     "true", "false", "null", "var", "const",
     "goto")
 
+  def get_statistics(data:ParSeq[List[String]]) = {
+    val nums_tokens = data.map(_.size).toList
+    val max_tokens = nums_tokens.max
+    val min_tokens = nums_tokens.min
+    val average_tokens = nums_tokens.sum / nums_tokens.size
+
+    val nums_occur = nums_tokens.map(_ / 10).groupBy(identity).mapValues(_.size)
+    logger.info(s"nums_of_code\tmax\tmin\taverage")
+    logger.info(s"${nums_tokens.size}\t${max_tokens}\t${min_tokens}\t${average_tokens}")
+    val names = nums_occur.map(e => s"[${e._1 * 10}, ${(e._1 + 1) * 10})").mkString("\t")
+    val values = nums_occur.map(_._2).mkString("\t")
+    logger.info("The total number of per each counting period, and step is 10")
+    logger.info(s"\t${names}")
+    logger.info(s"value\t${values}")
+  }
+
   def build_vocab(buggyPath: List[String],
                   fixedPath: List[String],
                   isFile:Boolean = false) = {
@@ -35,9 +51,8 @@ class Vocabulary(config: ConfigNamespace) extends parser.JavaParser {
         e => e.getText != " " && e.getText != "\n").map(_.getText)
      }
     }
-    val buggyStatis = buggyTokens.map(_.size)
-
-    logger.info(s"[Buggy] Average: ${buggyStatis.sum / buggyStatis.size}, Min: ${buggyStatis.min}, Max: ${buggyStatis.max}")
+    logger.info(s"[Buggy] Average")
+    get_statistics(buggyTokens)
 
     val fixedTokens = fixedPath.par.map { src => {
       val cu = getComplationUnit(src, METHOD, isFile)
@@ -45,9 +60,8 @@ class Vocabulary(config: ConfigNamespace) extends parser.JavaParser {
         e => e.getText != " " && e.getText != "\n").map(_.getText)
      }
     }
-    val fixedStatis = fixedTokens.map(_.size).toList
-
-    logger.info(s"[Fixed] Average: ${fixedStatis.sum / fixedStatis.size}, Min: ${fixedStatis.min}, Max: ${fixedStatis.max}")
+    logger.info(s"[Fixed]")
+    get_statistics(fixedTokens)
 
     val allTokens = buggyTokens.flatMap(_.toSeq).union(fixedTokens.flatMap(_.toSeq)).filter(_ != "DummyClass")
     allTokens.groupBy(identity).mapValues(_.size).toList.sortBy(_._2)(Ordering[Int].reverse)

@@ -4,8 +4,12 @@ package parallel
 
 import java.io.{FileNotFoundException, IOException}
 import java.util.concurrent.{ExecutorService, Executors}
+
 import scala.collection.JavaConversions._
 import net.sourceforge.argparse4j.inf.{Namespace => ConfigNamespace}
+import org.ucf.ml.utils.Vocabulary
+
+import scala.jdk.CollectionConverters._
 
 /**
  * https://dzone.com/articles/java-concurrency-multi-threading-with-executorserv
@@ -24,16 +28,17 @@ class AbstractMaster (config:ConfigNamespace) extends utils.Common {
   def run() = {
     try {
 
-      // Load data idioms
-      val project_idioms = readIdioms(getConfig.getString("idioms_path"))
-
       /* Load buggy and target files, and save their path as a list of string*/
       val (buggy_files, fixed_files) = loadAndCheckData(getConfig.getString("buggy_path"),
         getConfig.getString("fixed_path"))
 
+      // Load data idioms
+      val append_vocab = config.getBoolean("append_vocab")
+      val idioms_src = new Vocabulary(config).run()
+      val idioms_ext = readIdioms(getConfig.getString("idioms_path"))
+      val project_idioms = if (append_vocab) idioms_ext.++(idioms_src) else idioms_ext
 
       val total_files_nums = math.min(buggy_files.size, fixed_files.size)
-
 
       // Calcuate nums of files would be processed by a worker
       val batch_size = total_files_nums / nums_worker + 1
@@ -145,9 +150,12 @@ class AbstractMaster (config:ConfigNamespace) extends utils.Common {
 //        }
 //      }
 
+      val buggy_output = getConfig.getString("output_dir") + "total/buggy.txt"
+      val fixed_output = getConfig.getString("output_dir") + "total/fixed.txt"
+
       if (!config.getBoolean("output_position")) {
-        write(getConfig.getString("output_dir") + "total/buggy.txt", buggy_abstract.mkString("\n"))
-        write(getConfig.getString("output_dir") + "total/fixed.txt", fixed_abstract.mkString("\n"))
+        write(buggy_output, buggy_abstract.mkString("\n"))
+        write(fixed_output, fixed_abstract.mkString("\n"))
       } else {
         val abstract_buggy_ = buggy_abstract.map{case seq => {seq.split(" ").map(_.split("@").head).mkString(" ")}}
         val abstract_buggy_pos = buggy_abstract.map{case seq => {seq.split(" ").map(_.split("@").last).mkString(" ")}}
@@ -159,6 +167,14 @@ class AbstractMaster (config:ConfigNamespace) extends utils.Common {
         write(getConfig.getString("output_dir") + "total/buggy-pos.txt", abstract_buggy_pos.mkString("\n"))
         write(getConfig.getString("output_dir") + "total/fixed-pos.txt", abstract_fixed_pos.mkString("\n"))
       }
+
+      val abs_conf = Map[String, Object]("run_type" -> "vocabulary",
+        "buggy_path"-> buggy_output,
+        "fixed_path" -> fixed_output,
+        "is_abstract" -> true.asInstanceOf[Object],
+        "top_k" -> 100000.asInstanceOf[Object]).asJava
+      new Vocabulary(new ConfigNamespace(abs_conf)).run()
+
     } catch  {
       case e: FileNotFoundException => {
         e.printStackTrace()

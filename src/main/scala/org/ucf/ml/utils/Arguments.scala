@@ -10,8 +10,28 @@ import scala.collection.JavaConversions._
 import scala.reflect.io.File
 
 class Arguments extends Common {
+
+  def config_vocabulary(parser: ArgumentParser): Unit = {
+    val group = parser.addArgumentGroup("Vocabulary")
+    group.addArgument("-top_k", "--top_k")
+      .setDefault[Int](600)
+      .help("The top k frequenent as idioms")
+
+    parser.addArgument("-idioms_path").help("The idioms tokens path")
+
+    group.addArgument("-is_abstract")
+      .`type`(classOf[Boolean])
+      .setDefault[Boolean](false)
+      .help("The input file is abstracted code or source code")
+
+    group.addArgument("-append_vocab")
+      .`type`(classOf[Boolean])
+      .setDefault[Boolean](false)
+      .help("The input file is abstracted code or source code")
+  }
   def config_abstraction(parser: ArgumentParser): Unit = {
     val group = parser.addArgumentGroup("abstract")
+
     group.addArgument("-with_position")
       .`type`(classOf[Boolean])
       .setDefault[Boolean](false)
@@ -21,6 +41,7 @@ class Arguments extends Common {
       .`type`(classOf[Boolean])
       .setDefault[Boolean](false)
       .help("Generate abstract code with position information and output position as well")
+
     group.addArgument("-split_data")
       .`type`(classOf[Boolean])
       .setDefault[Boolean](false)
@@ -106,8 +127,8 @@ class Arguments extends Common {
       }
     }
 
-    val parser = ArgumentParsers.newFor("Abstraction")
-      .build().description("AST-Based Java Code abstration")
+    val parser = ArgumentParsers.newFor("code2abs")
+      .build().description("AST-Based Java Code to abstration")
 
     parser.addArgument("-run_type")
       .choices("abstract", "astdiff", "combine", "gateway", "sequencer")
@@ -122,10 +143,9 @@ class Arguments extends Common {
 
     parser.addArgument("-buggy_path").help("The input path or directory for buggy code")
     parser.addArgument("-fixed_path").help("The input path or directory for fixed code")
-
     parser.addArgument("-output_dir").help("The input directory for output")
 
-    parser.addArgument("-idioms_path").help("The idioms tokens path")
+    parser.addArgument("-log_file").setDefault[String]("app.log").help("The log file")
 
     parser.addArgument("-nums_worker")
       .`type`(classOf[Int])
@@ -134,6 +154,8 @@ class Arguments extends Common {
     combine_abstraction(parser)
 
     ast_diff_abstraction(parser)
+
+    config_vocabulary(parser)
 
     config_abstraction(parser)
 

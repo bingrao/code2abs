@@ -61,25 +61,6 @@ class JavaParser extends Visitor  {
     StaticJavaParser.parse(source)
   }
 
-//  def getBPEComplationUnit(sourcePath:String, ctx:Context,
-//                           granularity:Value, isFile:Boolean = true): CompilationUnit = {
-//    val cu = getComplationUnit(sourcePath, granularity, isFile)
-//    if (ctx.bpe_enable) {
-//      val bpe = getBytePairEncodingFromCompilation(cu)
-//      bpe.foreach(ele => ctx.bpe_map.getNewContent(ele, 0))
-//      var source = Granularity.apply(sourcePath, granularity, isFile).getSourceCode()
-//
-//      ctx.bpe_map.getData.foreach {
-//        case (key, value) => {
-//          val replace_source = source
-//          source = replace_source.replace(key, value(0).split("_")(0))
-//        }
-//      }
-//      println(source)
-//      StaticJavaParser.parse(source)
-//    } else cu
-//  }
-
   def getBPEComplationUnit(sourcePath:String, ctx:Context,
                            granularity:Value, isFile:Boolean = true): CompilationUnit = {
     val cu = getComplationUnit(sourcePath, granularity, isFile)
@@ -89,8 +70,6 @@ class JavaParser extends Visitor  {
     }
     cu
   }
-
-
 
   implicit class getASTDiffScore(ast: AstComparator){
     def getDiffScore(buggy:String, fixed:String) = {

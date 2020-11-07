@@ -3,6 +3,7 @@ package org.ucf.ml
 import parser.JavaParser
 import net.sourceforge.argparse4j.inf.{Namespace => ConfigNamespace}
 import org.ucf.ml.parallel.ASTDiffMaster
+import org.ucf.ml.utils.Vocabulary
 
 import scala.collection.JavaConversions._
 
@@ -25,7 +26,7 @@ import scala.collection.JavaConversions._
  */
 
 class Runner extends utils.Arguments {
-  def gateway_server(config: ConfigNamespace) = {
+  def run_gateway(config: ConfigNamespace) = {
 
     val port_num = config.getInt("port_num")
 
@@ -34,7 +35,7 @@ class Runner extends utils.Arguments {
     logger.info(s"Start Py4J Server [${port_num}] to recieve python call ...")
   }
 
-  def gen_sequencer_data (config: ConfigNamespace) = {
+  def run_sequencer (config: ConfigNamespace) = {
 
     val src_path = config.getString("buggy_path")
     val tgt_path = config.getString("fixed_path")
@@ -47,7 +48,7 @@ class Runner extends utils.Arguments {
     javaPaser.genSequencerData(src_path, tgt_path, output_dir, idioms_path, max_length)
   }
 
-  def gen_ast_diff(config: ConfigNamespace) = {
+  def run_astdiff(config: ConfigNamespace) = {
     /**
      * scala "${BinPath}"/java_abstract-1.0-jar-with-dependencies.jar -run_type "astdiff" \
      *  -fixed_path "${FIXED_PATH}" \
@@ -60,7 +61,7 @@ class Runner extends utils.Arguments {
     worker.run()
   }
 
-  def combine_java_files(config: ConfigNamespace) = {
+  def run_combine(config: ConfigNamespace) = {
     val bugggy_dir = config.getString("buggy_path")
     val fixed_dir = config.getString("fixed_path")
     val output = config.getString("output_dir")
@@ -70,7 +71,7 @@ class Runner extends utils.Arguments {
     javaPaser.genCombinedFiles(bugggy_dir, fixed_dir, output)
   }
 
-  def gen_abstract_code(config: ConfigNamespace) = {
+  def run_abstraction(config: ConfigNamespace) = {
     /**
      * #  scala "${BinPath}"/java_abstract-1.0-jar-with-dependencies.jar -run_type "abstract" \
      * #        -buggy_path "examples/learning_fix/data/${dataset}/raw/buggy/" \
@@ -84,6 +85,12 @@ class Runner extends utils.Arguments {
     val worker = new parallel.AbstractMaster(config)
     worker.run()
   }
+
+  def run_vocabulary(config: ConfigNamespace):Unit = {
+    val vocab = new Vocabulary(config)
+    vocab.run()
+  }
+
 }
 
 
@@ -96,13 +103,15 @@ object Runner extends Runner {
       logger.info(s"${key} -> ${value}")
     }
 
+    logger.updateFileAppender(config.getString("log_file"))
 
     config.getString("run_type") match {
-      case "abstract" => gen_abstract_code(config)
-      case "astdiff" => gen_ast_diff(config)
-      case "sequencer" => gen_sequencer_data(config)
-      case "combine" => combine_java_files(config)
-      case "gateway" => gateway_server(config)
+      case "abstract" => run_abstraction(config)
+      case "astdiff" => run_astdiff(config)
+      case "sequencer" => run_sequencer(config)
+      case "combine" => run_combine(config)
+      case "gateway" => run_gateway(config)
+      case "vocabulary" => run_vocabulary(config)
       case _ =>
         logger.info(s"The input does not match: ${args}")
     }

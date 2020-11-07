@@ -1,8 +1,11 @@
 package org.ucf.ml.utils
 
-import java.io.{File, FileWriter, PrintWriter}
+import java.io.{File, FileWriter, IOException, PrintWriter}
 import java.nio.file.{Files, Paths}
 import java.util.stream.Collectors
+
+import org.ucf.ml.EmptyString
+
 import scala.collection.mutable
 import scala.io.Source
 import scala.collection.JavaConversions._
@@ -12,6 +15,23 @@ trait Common {
 
   val logger = new Logging(this.getClass.getName)
 
+  def readSourceCode(input:String, isFile:Boolean = true) = {
+    val reg:String = try {
+      if(isFile) {
+        new String(Files.readAllBytes(Paths.get(input)))
+      } else {
+        input
+      }
+    } catch {
+      case e:IOException => {
+        e.printStackTrace()
+        EmptyString
+      }
+    }
+    // Remove all comments and anotations in the source code
+    reg.replaceAll("(?:/\\*(?:[^*]|(?:\\*+[^*/]))*\\*+/)|(?://.*)","") //remove comments
+      .replaceAll("@.+", "") //remove annotations
+  }
 
   def write(path:String, context:String) = {
     val p = (new File(path)).getParentFile

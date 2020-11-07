@@ -4,6 +4,7 @@ package org.ucf.ml
   */
 import org.junit.Test
 import org.ucf.ml.parallel.ASTDiffMaster
+import org.ucf.ml.utils.Vocabulary
 
 class ScalaTestAPP extends TestUtils {
   @Test def testAdd() {
@@ -49,6 +50,28 @@ class ScalaTestAPP extends TestUtils {
     worker.run()
   }
 
+
+  @Test def testVocabularyApp(): Unit ={
+    import scala.jdk.CollectionConverters._
+    val isAbstract = true
+    val config = if (isAbstract)
+      Map[String, Object]("run_type" -> "vocabulary",
+        "buggy_path"-> "data/small/buggy.txt",
+        "fixed_path" -> "data/small/fixed.txt",
+        "idioms_path" -> "data/idioms/idioms.csv",
+        "is_abstract" -> true.asInstanceOf[Object],
+        "top_k" -> 10.asInstanceOf[Object]).asJava
+      else Map[String, Object]("run_type" -> "vocabulary",
+      "buggy_path"-> "data/small/raw/buggy/",
+      "fixed_path" ->"data/small/raw/fixed/",
+      "idioms_path" -> "data/idioms/idioms.csv",
+      "is_abstract" -> false.asInstanceOf[Object],
+      "top_k" -> 10.asInstanceOf[Object]).asJava
+
+    import net.sourceforge.argparse4j.inf.Namespace
+    val worker = new Vocabulary(new Namespace(config))
+    val idioms = worker.run()
+  }
 
   @Test def testASTDiffParallel(): Unit ={
     import scala.jdk.CollectionConverters._

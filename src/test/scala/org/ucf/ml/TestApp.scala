@@ -43,7 +43,10 @@ class ScalaTestAPP extends TestUtils {
       "with_position" -> false.asInstanceOf[Object],
       "output_position" -> false.asInstanceOf[Object],
       "output_dir" -> "data/small/processed/total/",
-      "nums_worker" -> 10.asInstanceOf[Object]).asJava
+      "nums_worker" -> 10.asInstanceOf[Object],
+      "append_vocab" -> false.asInstanceOf[Object],
+      "is_abstract" -> false.asInstanceOf[Object],
+      "top_k" -> 300.asInstanceOf[Object]).asJava
 
     import net.sourceforge.argparse4j.inf.Namespace
     val worker = new parallel.AbstractMaster(new Namespace(config))

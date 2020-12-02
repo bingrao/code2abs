@@ -1,0 +1,1 @@
+public int METHOD_1 ( int VAR_1 ) { int VAR_2 = 0 ; int VAR_3 = ( VAR_4 [ VAR_5 ] ) & VAR_1 ; switch ( VAR_1 ) { case VAR_6 : VAR_2 = VAR_3 > > > INT_1 ; break ; case VAR_7 : VAR_2 = VAR_3 > > > INT_2 ; break ; case VAR_8 : VAR_2 = VAR_3 > > > INT_3 ; break ; case VAR_9 : VAR_2 = VAR_3 > > > INT_4 ; break ; } return VAR_2 ; }

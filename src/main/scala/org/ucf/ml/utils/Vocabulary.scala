@@ -31,11 +31,16 @@ class Vocabulary(config: ConfigNamespace) extends parser.JavaParser {
     val step = (max_tokens / 20 / 10 + 1) * 10
 
     val allTokens = data.flatMap(_.toSeq).filter(_ != "DummyClass")
+
+    val allKeywords = data.map(ele => ele.count(e => keywords.contains(e))*1.0 / ele.size)
+    val avekeys = allKeywords.sum / allKeywords.size
+
+
     val vocab = allTokens.groupBy(identity).mapValues(_.size).toList.sortBy(_._2)(Ordering[Int].reverse)
 
     val nums_occur = nums_tokens.map(_ / step).groupBy(identity).mapValues(_.size).toList.sortBy(_._1)
-    logger.info(s"average, max, min, vocab_size, nums_of_code: " +
-      s"${average_tokens}\t${max_tokens}\t${min_tokens}\t${vocab.size}\t${nums_tokens.size}")
+    logger.info(s"average, max, min, vocab_size, nums_of_code, average_keywords_perf: " +
+      s"${average_tokens}\t${max_tokens}\t${min_tokens}\t${vocab.size}\t${nums_tokens.size}\t${avekeys}")
     val names = nums_occur.map(e => s"[${e._1 * step}, ${(e._1 + 1) * step})").mkString("\t")
     val values = nums_occur.map(_._2).mkString("\t")
     logger.info(s"The total number of per each counting period, and step is ${step}")

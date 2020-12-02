@@ -61,12 +61,25 @@ class JavaParser extends Visitor  {
     StaticJavaParser.parse(source)
   }
 
+
+  def isParsed(sourcePath:String, granularity:Value, isFile:Boolean = true): Boolean = {
+
+    val is_parsed = try {
+      val cu = getComplationUnit(sourcePath, granularity, isFile)
+      Right(true)
+    } catch {
+      case e: Exception => Left(false)
+    }
+
+    is_parsed.isRight
+  }
+
   def getBPEComplationUnit(sourcePath:String, ctx:Context,
                            granularity:Value, isFile:Boolean = true): CompilationUnit = {
     val cu = getComplationUnit(sourcePath, granularity, isFile)
     if (ctx.bpe_enable) {
       val bpe = getBytePairEncodingFromCompilation(cu)
-      bpe.foreach(ele => ctx.bpe_map.getNewContent(ele, 0))
+      bpe.foreach(ele => ctx.bpe_map.getNewContent(ele, 0, ctx.getCurrentMode))
     }
     cu
   }

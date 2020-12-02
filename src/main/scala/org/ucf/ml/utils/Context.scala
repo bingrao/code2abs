@@ -150,24 +150,24 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
   ///////////////////////////////////////////////////////////////////////////////////////
   /********************* set up and look up statistical data ***************************/
   val bpe_enable = true
-  val bpe_map = new Count[String, String]("BPE", idioms, with_scope=with_scope)
+  val bpe_map = new Count[String, CountEntry]("BPE", idioms, with_scope=with_scope)
 
 
 
   // Java keywords and not appear identifiers in the context
-  val ident_maps = new Count[String, String]("Ident", idioms, with_scope=with_scope)
+  val ident_maps = new Count[String, CountEntry]("IDENT", idioms, with_scope=with_scope)
 
-  val textBlock_maps = new Count[String, String]("TEXT", idioms, with_scope=with_scope)
-  val string_maps = new Count[String, String]("STRING", idioms, true, with_scope=with_scope)
-  val char_maps = new Count[String, String]("CHAR", idioms, true, with_scope=with_scope)
-  val int_maps = new Count[String, String]("INT", idioms, true, with_scope=with_scope)
-  val float_maps = new Count[String, String]("FLOAT", idioms, true, with_scope=with_scope)
-  val long_maps = new Count[String, String]("LONG", idioms, true, with_scope=with_scope)
-  val double_maps = new Count[String, String]("DOUBEL", idioms, true, with_scope=with_scope)
+  val textBlock_maps = new Count[String, CountEntry]("TEXT", idioms, with_scope=with_scope)
+  val string_maps = new Count[String, CountEntry]("STRING", idioms, true, with_scope=with_scope)
+  val char_maps = new Count[String, CountEntry]("CHAR", idioms, true, with_scope=with_scope)
+  val int_maps = new Count[String, CountEntry]("INT", idioms, true, with_scope=with_scope)
+  val float_maps = new Count[String, CountEntry]("FLOAT", idioms, true, with_scope=with_scope)
+  val long_maps = new Count[String, CountEntry]("LONG", idioms, true, with_scope=with_scope)
+  val double_maps = new Count[String, CountEntry]("DOUBEL", idioms, true, with_scope=with_scope)
 
-  val type_maps = new Count[String, String]("TYPE", idioms, false, with_scope=with_scope)
-  val method_maps = new Count[String, String]("METHOD", idioms, true, with_scope=with_scope)
-  val variable_maps = new Count[String, String]("VAR", idioms, true, with_scope=with_scope)
+  val type_maps = new Count[String, CountEntry]("TYPE", idioms, false, with_scope=with_scope)
+  val method_maps = new Count[String, CountEntry]("METHOD", idioms, true, with_scope=with_scope)
+  val variable_maps = new Count[String, CountEntry]("VAR", idioms, true, with_scope=with_scope)
 
 
   ///////////////////////////////////////////////////////////////////////////////////////

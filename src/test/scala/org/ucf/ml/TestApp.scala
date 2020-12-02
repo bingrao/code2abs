@@ -53,7 +53,7 @@ class ScalaTestAPP extends TestUtils {
 
   @Test def testVocabularyApp(): Unit ={
     import scala.jdk.CollectionConverters._
-    val isAbstract = true
+    val isAbstract = false
     val config = if (isAbstract)
       Map[String, Object]("run_type" -> "vocabulary",
         "buggy_path"-> "data/small/buggy.txt",

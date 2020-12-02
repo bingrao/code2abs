@@ -3,14 +3,14 @@ package org.ucf.ml
  * @author
  */
 import java.io.File
-import java.nio.file.FileSystem
 
 import gumtree.spoon.AstComparator
-import gumtree.spoon.builder.SpoonGumTreeBuilder
 import org.junit.Test
 
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
+import scala.collection.JavaConversions._
+
 
 class TestASTDiff extends TestUtils {
   @Test def testAdd() {
@@ -41,7 +41,7 @@ class TestASTDiff extends TestUtils {
   }
 
   @Test def testAstDiff(): Unit ={
-    val file_index = 1
+    val file_index = 0
     val buggy = s"data/small/raw/buggy/${file_index}.java"
     val fixed = s"data/small/raw/fixed/${file_index}.java"
     val editScript  = getASTDiff(buggy, fixed, METHOD)
@@ -100,7 +100,28 @@ class TestASTDiff extends TestUtils {
     }
   }
 
+  @Test def testBugPerf():Unit = {
 
+
+
+    import scala.io.Source
+    val step = 79000
+    val n_best:Int = 1
+    val buggy_src = readFile(s"data/small/predict/${step}/test-buggy.txt")
+    val fixed_src =  readFile(s"data/small/predict/${step}/test-fixed.txt")
+    val fixed_pred_best =  readFile(s"data/small/predict/${step}/predictions_${n_best}_${n_best}_best.txt")
+    val actions:ListBuffer[(String, String)] = new ListBuffer[(String, String)]()
+    val astdiff = new AstComparator()
+
+    for (i <- buggy_src.indices) {
+      val context = SparkRunnerContext(buggy_src(i),
+        fixed_src(i),
+        fixed_pred_best.slice(i * n_best, (i + 1) * n_best),
+        i,
+        n_best)
+      val results = context.run(new AstComparator())
+    }
+  }
 
   def _test(input:File) = {
     var cnt = 1

@@ -22,8 +22,9 @@ class TestAbstract extends TestUtils {
       """
         |package org.ucf.java;
         |public class JavaApp {
-        |    int bb = 3;
-        |    public void hello(String input) {
+        |    int bb = 4;
+        |    int dd = 18;
+        |    public void hello(String bb) {
         |        if (bb < 5) {
         |           int cc = 3;
         |        } else {
@@ -34,8 +35,11 @@ class TestAbstract extends TestUtils {
         |        int ad = 7;
         |        Integer bb = ad + cc;
         |        for(i = 0; i < 10; i++){
-        |           int bb = 3;
         |           bb = bb + ed;
+        |        }
+        |        {
+        |           int bb = 5;
+        |           c  = bb + 3;
         |        }
         |    }
         |}
@@ -54,7 +58,7 @@ class TestAbstract extends TestUtils {
   }
 
   @Test def testPairAbstract():Unit = {
-    val file_index = 46628
+    val file_index = 1
     val buggy = s"data/small/raw/buggy/$file_index.java"
     val fixed = s"data/small/raw/fixed/$file_index.java"
     get_abstract_code(buggy, METHOD, isFile = true, SOURCE)

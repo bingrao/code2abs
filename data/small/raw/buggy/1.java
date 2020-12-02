@@ -1,12 +1,9 @@
-public void mockSpecificEnumElementsEvenWhenUsingASingleStrictMockInstance(@mockit.Mocked(value = "getDescription")
+public void mockSpec(@mockit.Mocked(value = "getDescription")
 mockit.MockedEnumsTest.MyEnum unused ) {
-        new mockit.Expectations() {
-        {
-            org.ucf.info("a");
-        mockit.MockedEnumsTest.MyEnum.First.getDescription();
-        mockit.MockedEnumsTest.MyEnum.Second.getDescription();
-        }
-        };
-        org.ucf.debug("e");
-        mockit.MockedEnumsTest.MyEnum.Second.getDescription();
-        }
+    new mockit.Expectations() {{
+        mockit.MockedEnumsTest.MyEnum unused = 10;
+        mockit.MockedEnumsTest.MyEnum.First.getDescription(unused);
+        mockit.MockedEnumsTest.MyEnum.Second.getDescription(unused);
+    }};
+    mockit.MockedEnumsTest.MyEnum.Second.getDescription(unused);
+}

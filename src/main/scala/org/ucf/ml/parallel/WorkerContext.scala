@@ -18,12 +18,12 @@ class WorkerContext(buggy_batch:List[String],
                     n_best:Int = 1,
                     granularity: Value = METHOD,
                     batch_size:Int,
-                    isPosition:Boolean=false) extends Serializable {
+                    isPosition:Boolean=false,
+                    is_separated:Boolean=true) extends Serializable {
 
   private val buggy_abstract = new StringBuilder
   private val fixed_abstract = new StringBuilder
   private val predt_abstract = new StringBuilder
-
 
   def append_buggy(content:String): mutable.StringBuilder = this.buggy_abstract.append(content)
   def append_fixed(content:String): mutable.StringBuilder = this.fixed_abstract.append(content)
@@ -58,4 +58,6 @@ class WorkerContext(buggy_batch:List[String],
 
 //  def isWithPosition: lang.Boolean = config.getBoolean("with_position")
   def isWithPosition: lang.Boolean = isPosition
+
+  def isSeparated  = is_separated
 }

@@ -51,37 +51,30 @@ class Vocabulary(config: ConfigNamespace) extends parser.JavaParser {
   def build_vocab(buggyPath: List[String],
                   fixedPath: List[String],
                   isFile:Boolean = false) = {
-
-    val buggyTokens = buggyPath.par.map { src => {
-      val reg = try {
-        val cu = getComplationUnit(src, METHOD, isFile)
-        cu.getTokenRange.get().toList.filter(
-          e => e.getText != " " && e.getText != "\n").map(_.getText)
-      } catch {
-        case e: Exception => {
-          readSourceCode(src, isFile).split(" ").toList
+    def getTokens(inputPath: List[String], mode: Value) = inputPath.zipWithIndex.par.map {
+      case (src, index) => {
+        val reg = try {
+          val cu = getComplationUnit(src, METHOD, isFile)
+          cu.getTokenRange.get().toList.filter(
+            e => e.getText != " " && e.getText != "\n").map(_.getText)
+        } catch {
+          case e: Exception => {
+            logger.info(s"[Parse-Error]-[${mode}]-Index[${index}]-: ${src}")
+            e.printStackTrace()
+            readSourceCode(src, isFile).split(" ").toList
+          }
         }
+        reg.asInstanceOf[List[String]]
       }
-      reg.asInstanceOf[List[String]]
     }
-    }
+
+    val buggyTokens = getTokens(buggyPath, SOURCE)
 
     logger.info(s"The statistics of buggy code: ")
     get_statistics(buggyTokens)
 
-    val fixedTokens = fixedPath.par.map { src => {
-      val reg = try {
-        val cu = getComplationUnit(src, METHOD, isFile)
-        cu.getTokenRange.get().toList.filter(
-          e => e.getText != " " && e.getText != "\n").map(_.getText)
-      } catch {
-        case e: Exception => {
-          readSourceCode(src, isFile).split(" ").toList
-        }
-      }
-      reg.asInstanceOf[List[String]]
-     }
-    }
+
+    val fixedTokens = getTokens(fixedPath, TARGET)
 
     logger.info(s"The statistics of fixed code: ")
     get_statistics(fixedTokens)
@@ -93,15 +86,16 @@ class Vocabulary(config: ConfigNamespace) extends parser.JavaParser {
   def run() = {
     val buggy_path = config.getString("buggy_path")
     val fixed_path = config.getString("fixed_path")
-    val is_abstract = config.getBoolean("is_abstract")
+    val is_separated = config.getBoolean("is_separated")
     val top_k = config.getString("top_k").toInt
 
-    val (buggy_files, fixed_files) = if (is_abstract)
-      (readFile(buggy_path), readFile(fixed_path))
-    else
+    val (buggy_files, fixed_files) = if (is_separated)
       loadAndCheckData(buggy_path, fixed_path)
+    else
+      (readFile(buggy_path), readFile(fixed_path))
 
-    val freqs = build_vocab(buggy_files, fixed_files, ! is_abstract)
+
+    val freqs = build_vocab(buggy_files, fixed_files, is_separated)
     logger.info(s"The total vocab is ${freqs.size}")
 
     val idioms = freqs.filter(ele => !keywords.contains(ele._1)).map(_._1)

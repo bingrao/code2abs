@@ -21,20 +21,24 @@ class AbstractMaster (config:ConfigNamespace) extends utils.Common {
 //  val config = new Config(configPath)
   def getConfig = this.config
   private val nums_worker = config.getInt("nums_worker")
+  private val is_separated = getConfig.getBoolean("is_separated")
+  private val buggy_path = getConfig.getString("buggy_path")
+  private val fixed_path = getConfig.getString("fixed_path")
   private val isParallel = nums_worker > 1
   private var pools: ExecutorService = null
 
   /* Submit workers to executors and start them*/
   def run() = {
     try {
-
       /* Load buggy and target files, and save their path as a list of string*/
-      val (buggy_files, fixed_files) = loadAndCheckData(getConfig.getString("buggy_path"),
-        getConfig.getString("fixed_path"))
+      val (buggy_files, fixed_files) = if (is_separated)
+          loadAndCheckData(buggy_path, fixed_path)
+        else
+          (readFile(buggy_path), readFile(fixed_path))
 
       // Load data idioms
       val append_vocab = config.getBoolean("append_vocab")
-      val idioms_src = new Vocabulary(config).run()
+      val idioms_src = new Vocabulary(getConfig).run()
       val idioms_ext = readIdioms(getConfig.getString("idioms_path"))
       val project_idioms = if (append_vocab) idioms_ext.++(idioms_src) else idioms_ext
 
@@ -59,9 +63,9 @@ class AbstractMaster (config:ConfigNamespace) extends utils.Common {
           worker_id = index,
           granularity = METHOD,
           batch_size = batch_size,
-          isPosition = config.getBoolean("with_position")))
+          isPosition = config.getBoolean("with_position"),
+          is_separated = is_separated))
       }
-
 
       val results = if (isParallel) {
         // Create a pool of executor computing resources
@@ -171,7 +175,7 @@ class AbstractMaster (config:ConfigNamespace) extends utils.Common {
       val abs_conf = Map[String, Object]("run_type" -> "vocabulary",
         "buggy_path"-> buggy_output,
         "fixed_path" -> fixed_output,
-        "is_abstract" -> true.asInstanceOf[Object],
+        "is_separated" -> false.asInstanceOf[Object],
         "top_k" -> 100000.asInstanceOf[Object]).asJava
       new Vocabulary(new ConfigNamespace(abs_conf)).run()
 

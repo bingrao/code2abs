@@ -10,18 +10,19 @@ class AbstractWorker(wtx: WorkerContext) extends Callable[WorkerContext] with ut
 
   val javaPaser = wtx.javaPaser
 
-  def task(buggyPath:String, fixedPath:String, last:Boolean=false) = {
+  def task(buggyPath:String, fixedPath:String, index:Int, last:Boolean=false) = {
     def _task(ctx:Context, inputPath:String, mode:Value, granularity:Value) = {
       try {
         ctx.setCurrentMode(mode)
-        if (logger.isDebugEnabled) ctx.append(s"[${wtx.get_work_id}]-${new File(inputPath).getName}")
 
-        val cu = javaPaser.getBPEComplationUnit(inputPath, ctx, granularity)
+        if (logger.isDebugEnabled && wtx.isSeparated) ctx.append(s"[${wtx.get_work_id}]-${new File(inputPath).getName}")
+
+        val cu = javaPaser.getBPEComplationUnit(inputPath, ctx, granularity, wtx.isSeparated)
 
         javaPaser.genAbstractCode(ctx, cu)
       } catch {
         case e: Exception => {
-          logger.info(s"The working model: ${mode}, error input ${inputPath}")
+          logger.info(s"[Abstract-Error]-[${mode}]-Index[${index}], error input ${inputPath}")
           e.printStackTrace()
         }
       }
@@ -57,7 +58,10 @@ class AbstractWorker(wtx: WorkerContext) extends Callable[WorkerContext] with ut
 
     /*Iteration Executing task to handle with all involved in data*/
     for (idx <- 0 until wtx.size) {
-      task(wtx.get_buggy_batch(idx), wtx.get_fixed_batch(idx), idx == wtx.size - 1)
+
+      val index = wtx.get_work_id * wtx.get_batch_size + idx
+
+      task(wtx.get_buggy_batch(idx), wtx.get_fixed_batch(idx), index, idx == wtx.size - 1)
     }
     val stop = System.currentTimeMillis()
     logger.info(f"Worker ${wtx.get_work_id} deal with ${wtx.size} task in ${(stop - start)/1000} seconds")

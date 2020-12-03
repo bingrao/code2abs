@@ -46,6 +46,7 @@ class Arguments extends Common {
       .`type`(classOf[Boolean])
       .setDefault[Boolean](false)
       .help("Split data into train, test and valid dataset with ratio of 8:1:1")
+
   }
 
   def ast_diff_abstraction(parser: ArgumentParser): Unit = {
@@ -144,6 +145,12 @@ class Arguments extends Common {
     parser.addArgument("-buggy_path").help("The input path or directory for buggy code")
     parser.addArgument("-fixed_path").help("The input path or directory for fixed code")
     parser.addArgument("-output_dir").help("The input directory for output")
+    parser.addArgument("-is_separated")
+      .`type`(classOf[Boolean])
+      .setDefault[Boolean](true)
+      .help("whether the input buggy/fixed file is a list of seperated files " +
+        "or a single file containing all buggy-fixed pairs")
+
 
     parser.addArgument("-log_file").setDefault[String]("app.log").help("The log file")
 

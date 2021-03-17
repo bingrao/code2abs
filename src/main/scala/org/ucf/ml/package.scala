@@ -71,5 +71,10 @@ package object ml extends Enumeration {
   // https://en.wikipedia.org/wiki/List_of_Unicode_characters#Arrows
   def getUpArrow = " " + '\u2191' + " "
   def getDownArrow = " " + '\u2193' + " "
+
+  def getRightDoubleArrow = " " + '\u21D2' + " "
+
+  def getUpPairedArrow = " " + '\u21C8' + " "
+
 }
 

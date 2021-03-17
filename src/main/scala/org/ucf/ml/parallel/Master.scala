@@ -73,7 +73,10 @@ class AbstractMaster (config:ConfigNamespace) extends utils.Common {
       }
 
       val buggy_abstract = results.map(_.get_buggy_abstract).flatMap(_.split("\n")).toList
+      val buggy_abstract_path = results.map(_.get_buggy_abstract_path).flatMap(_.split("\n")).toList
+
       val fixed_abstract = results.map(_.get_fixed_abstract).flatMap(_.split("\n")).toList
+      val fixed_abstract_path = results.map(_.get_fixed_abstract_path).flatMap(_.split("\n")).toList
 
 
       if (logger.isDebugEnabled) {
@@ -91,71 +94,18 @@ class AbstractMaster (config:ConfigNamespace) extends utils.Common {
       }
 
 
-//      if (config.getIsSplitData) {
-//        import scala.util.Random
-//        val random = new Random(100)
-//
-//        val nums_train = buggy_abstract.size * 0.8
-//        val nums_test = buggy_abstract.size * 0.1
-//
-//        val train_buggy = random.shuffle(buggy_abstract).take(nums_train.toInt)
-//        val train_fixed = random.shuffle(fixed_abstract).take(nums_train.toInt)
-//        if (config.getIsConcatPosition) {
-//          write(getConfig.getOutputBuggyDir + "train-buggy.txt", train_buggy.mkString("\n"))
-//          write(getConfig.getOutputBuggyDir + "train-fixed.txt", train_fixed.mkString("\n"))
-//        } else {
-//          val train_buggy_ = train_buggy.map{case seq => {seq.split(" ").map(_.split("@").head).mkString(" ")}}
-//          val train_buggy_pos = train_buggy.map{case seq => {seq.split(" ").map(_.split("@").last).mkString(" ")}}
-//          val train_fixed_ = train_fixed.map{case seq => {seq.split(" ").map(_.split("@").head).mkString(" ")}}
-//          val train_fixed_pos = train_fixed.map{case seq => {seq.split(" ").map(_.split("@").last).mkString(" ")}}
-//
-//          write(getConfig.getOutputBuggyDir + "train-buggy.txt", train_buggy_.mkString("\n"))
-//          write(getConfig.getOutputBuggyDir + "train-fixed.txt", train_fixed_.mkString("\n"))
-//          write(getConfig.getOutputBuggyDir + "train-buggy-pos.txt", train_buggy_pos.mkString("\n"))
-//          write(getConfig.getOutputBuggyDir + "train-fixed-pos.txt", train_fixed_pos.mkString("\n"))
-//        }
-//
-//        val test_buggy = random.shuffle(buggy_abstract diff train_buggy).take(nums_test.toInt)
-//        val test_fixed = random.shuffle(fixed_abstract diff train_fixed).take(nums_test.toInt)
-//        if (config.getIsConcatPosition) {
-//          write(getConfig.getOutputBuggyDir + "test-buggy.txt", test_buggy.mkString("\n"))
-//          write(getConfig.getOutputBuggyDir + "test-fixed.txt", test_fixed.mkString("\n"))
-//        } else {
-//          val test_buggy_ = test_buggy.map{case seq => {seq.split(" ").map(_.split("@").head).mkString(" ")}}
-//          val test_buggy_pos = test_buggy.map{case seq => {seq.split(" ").map(_.split("@").last).mkString(" ")}}
-//          val test_fixed_ = test_fixed.map{case seq => {seq.split(" ").map(_.split("@").head).mkString(" ")}}
-//          val test_fixed_pos = test_fixed.map{case seq => {seq.split(" ").map(_.split("@").last).mkString(" ")}}
-//
-//          write(getConfig.getOutputBuggyDir + "test-buggy.txt", test_buggy_.mkString("\n"))
-//          write(getConfig.getOutputBuggyDir + "test-fixed.txt", test_fixed_.mkString("\n"))
-//          write(getConfig.getOutputBuggyDir + "test-buggy-pos.txt", test_buggy_pos.mkString("\n"))
-//          write(getConfig.getOutputBuggyDir + "test-fixed-pos.txt", test_fixed_pos.mkString("\n"))
-//        }
-//
-//        val eval_buggy = buggy_abstract diff train_buggy diff test_buggy
-//        val eval_fixed = fixed_abstract diff train_fixed diff test_fixed
-//        if (config.getIsConcatPosition) {
-//          write(getConfig.getOutputBuggyDir + "eval-buggy.txt", eval_buggy.mkString("\n"))
-//          write(getConfig.getOutputBuggyDir + "eval-fixed.txt", eval_fixed.mkString("\n"))
-//        } else {
-//          val eval_buggy_ = eval_buggy.map{case seq => {seq.split(" ").map(_.split("@").head).mkString(" ")}}
-//          val eval_buggy_pos = eval_buggy.map{case seq => {seq.split(" ").map(_.split("@").last).mkString(" ")}}
-//          val eval_fixed_ = eval_fixed.map{case seq => {seq.split(" ").map(_.split("@").head).mkString(" ")}}
-//          val eval_fixed_pos = eval_fixed.map{case seq => {seq.split(" ").map(_.split("@").last).mkString(" ")}}
-//
-//          write(getConfig.getOutputBuggyDir + "eval-buggy.txt", eval_buggy_.mkString("\n"))
-//          write(getConfig.getOutputBuggyDir + "eval-fixed.txt", eval_fixed_.mkString("\n"))
-//          write(getConfig.getOutputBuggyDir + "eval-buggy-pos.txt", eval_buggy_pos.mkString("\n"))
-//          write(getConfig.getOutputBuggyDir + "eval-fixed-pos.txt", eval_fixed_pos.mkString("\n"))
-//        }
-//      }
-
       val buggy_output = getConfig.getString("output_dir") + "total/buggy.txt"
+      val buggy_path_output = getConfig.getString("output_dir") + "total/buggy_path.txt"
+
       val fixed_output = getConfig.getString("output_dir") + "total/fixed.txt"
+      val fixed_path_output = getConfig.getString("output_dir") + "total/fixed_path.txt"
 
       if (!config.getBoolean("output_position")) {
         write(buggy_output, buggy_abstract.mkString("\n"))
+        write(buggy_path_output, buggy_abstract_path.mkString("\n"))
+
         write(fixed_output, fixed_abstract.mkString("\n"))
+        write(fixed_path_output, fixed_abstract_path.mkString("\n"))
       } else {
         val abstract_buggy_ = buggy_abstract.map{case seq => {seq.split(" ").map(_.split("@").head).mkString(" ")}}
         val abstract_buggy_pos = buggy_abstract.map{case seq => {seq.split(" ").map(_.split("@").last).mkString(" ")}}

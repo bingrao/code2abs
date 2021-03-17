@@ -38,17 +38,24 @@ class AbstractWorker(wtx: WorkerContext) extends Callable[WorkerContext] with ut
 
     // append results
     val buggy_abstract = ctx.get_buggy_abstract(wtx.isWithPosition)
+    val buggy_abstract_path = ctx.get_buggy_path()
     val fixed_abstract = ctx.get_fixed_abstract(wtx.isWithPosition)
+    val fixed_abstract_path = ctx.get_fixed_path()
 
     if (buggy_abstract.contains("\n") || fixed_abstract.contains("\n"))
       logger.info(s"Error -> Buggy_Path: ${buggyPath}, Fixed_Path: ${fixedPath}")
 
     wtx.append_buggy(buggy_abstract)
+    wtx.append_buggy_path(buggy_abstract_path)
+
     wtx.append_fixed(fixed_abstract)
+    wtx.append_fixed_path(fixed_abstract_path)
 
     if (!last) {
       wtx.append_buggy("\n")
+      wtx.append_buggy_path("\n")
       wtx.append_fixed("\n")
+      wtx.append_fixed_path("\n")
     }
   }
 

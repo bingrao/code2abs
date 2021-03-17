@@ -22,6 +22,7 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
 
   case class AbstractContext(target:Value) {
     private val token_abstract = new ListBuffer[String]
+    private val token_root_path = new ListBuffer[String]
     private val token_position = new ListBuffer[PositionEmbeddingType]
 
     /*AST Tree Node Position*/
@@ -33,12 +34,14 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
     def get_token_abstract: String = this.token_abstract.mkString(" ")
     def append_abstract(content:String):Unit = this.token_abstract.+=(content)
 
+    def get_token_path: String = this.token_root_path.mkString(getRightDoubleArrow)
+    def append_path(root_path:String):Unit = this.token_root_path.+=(root_path)
+
 
     def get_token_poistion: mutable.Seq[PositionEmbeddingType] = this.token_position
     def append_position(pos:PositionEmbeddingType): Unit = this.token_position.+=(pos)
 
     def get_token_abstract_with_position: String = {
-
       val length = token_position.toList.map(_.size).max
       (token_abstract.toList zip token_position.toList).map{case (token, position) =>
         val sparseList = length :: (for ((value, index) <- position.zipWithIndex if value !=0) yield index)
@@ -51,7 +54,6 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
         // left alian 10 chars
         val sparseList = position.size :: (for ((value, index) <- position.zipWithIndex if value !=0) yield index)
         println("%-10s, [%d]-%s".format(token, position.size, sparseList))
-
       }
     }
   }
@@ -63,6 +65,9 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
     if (isPosition) buggy_abstract.get_token_abstract_with_position else buggy_abstract.get_token_abstract
   def get_fixed_abstract(isPosition:Boolean = false): String =
     if (isPosition) fixed_abstract.get_token_abstract_with_position else fixed_abstract.get_token_abstract
+
+  def get_buggy_path(): String = buggy_abstract.get_token_path
+  def get_fixed_path(): String = fixed_abstract.get_token_path
 
 
   def buggy_toString():Unit = buggy_abstract.printPretty()
@@ -97,19 +102,33 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
     case TARGET => this.get_fixed_abstract()
   }
 
-  def append(content:String, numsIntent:Int = 0,
-             position:PositionEmbeddingType = List.fill(1)(-1)): Unit = this.getCurrentMode match {
-    case SOURCE =>
-      this.buggy_abstract.append_abstract(content)
-      this.buggy_abstract.append_position(position)
+  def append(content:String,
+             numsIntent:Int = 0,
+             position:PositionEmbeddingType = List.fill(1)(-1),
+             rootPath:String=""): Unit = {
 
-    case TARGET =>
-      this.fixed_abstract.append_abstract(content)
-      this.fixed_abstract.append_position(position)
+    // Debug problem:  append token position by Bing 2021-03015
+//    val newContent = s"${this.getNewPosition}@${content}"
+    val newContent = content
+    this.getCurrentMode match {
+      case SOURCE =>
+        this.buggy_abstract.append_abstract(newContent)
+        this.buggy_abstract.append_position(position)
+        this.buggy_abstract.append_path(rootPath)
+
+      case TARGET =>
+        this.fixed_abstract.append_abstract(newContent)
+        this.fixed_abstract.append_position(position)
+        this.fixed_abstract.append_path(rootPath)
+    }
   }
 
 
-  def appendPosition(content:String, index:Int=0, position:PositionEmbeddingType = null, parent:Node=null): Unit = {
+  def appendPosition(content:String,
+                     index:Int=0,
+                     position:PositionEmbeddingType = null,
+                     parent:Node=null,
+                     rootPath: String=""): Unit = {
 
     val pos = if ((position == null) && (parent != null)) {
       val parant_pos = parent.genPosition(this)
@@ -122,9 +141,9 @@ class Context(idioms:mutable.HashSet[String], granularity: Value = METHOD) exten
     } else position
 
     if (pos != null)
-      this.append(content = content, position = pos)
+      this.append(content = content, position = pos, rootPath = s"${content} @ ${rootPath}")
     else
-      this.append(content = content)
+      this.append(content = content, rootPath = s"${content} @ ${rootPath}")
   }
 
 

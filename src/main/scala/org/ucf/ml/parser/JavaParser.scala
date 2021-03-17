@@ -116,6 +116,8 @@ class JavaParser extends Visitor  {
     /**Traverse AST to gen abstract code**/
     genAbstractCode(context, cu)
 
+    print(context.get_buggy_path() + "\n")
+
     context.get_buggy_abstract()
   }
 

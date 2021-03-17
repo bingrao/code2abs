@@ -21,16 +21,27 @@ class WorkerContext(buggy_batch:List[String],
                     isPosition:Boolean=false) extends Serializable {
 
   private val buggy_abstract = new StringBuilder
+  private val buggy_abstract_path = new StringBuilder
+
   private val fixed_abstract = new StringBuilder
+  private val fixed_abstract_path = new StringBuilder
+
   private val predt_abstract = new StringBuilder
 
 
   def append_buggy(content:String): mutable.StringBuilder = this.buggy_abstract.append(content)
+  def append_buggy_path(content:String): mutable.StringBuilder = this.buggy_abstract_path.append(content)
+
   def append_fixed(content:String): mutable.StringBuilder = this.fixed_abstract.append(content)
+  def append_fixed_path(content:String): mutable.StringBuilder = this.fixed_abstract_path.append(content)
   def append_predt(content:String): mutable.StringBuilder = this.predt_abstract.append(content)
 
   def get_buggy_abstract:String = buggy_abstract.toString()
+  def get_buggy_abstract_path:String = buggy_abstract_path.toString()
+
   def get_fixed_abstract:String = fixed_abstract.toString()
+  def get_fixed_abstract_path:String = fixed_abstract_path.toString()
+
   def get_predt_abstract:String = predt_abstract.toString()
 
   val javaPaser = new parser.JavaParser

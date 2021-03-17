@@ -1427,14 +1427,18 @@ trait EnrichedTrees extends utils.Common {
     def genCode(ctx:Context, numsIntent:Int=0, tgt:Node=null, code_scope:Int=0):Unit = {
       val rootPath = getPathBetweenRoot(node)
       val full_name = node.toString
-      if (ctx.ident_maps.getIdioms.contains(full_name) && ctx.isAbstract)
+      if ((ctx.ident_maps.getIdioms.contains(full_name) || ctx.type_maps.contain(full_name))&& ctx.isAbstract)
         ctx.appendPosition(full_name, index = 0, parent = node, rootPath = rootPath)
       else {
         if (isScopeExpand(node.getScope, ctx)) {
           node.getScope.genCode(ctx, numsIntent, tgt, code_scope)
         } else {
           if (ctx.isAbstract) {
-            val scope_value = ctx.ident_maps.getNewContent(node.getScope.toString, code_scope, ctx.getCurrentMode)
+            val scope_value = if (ctx.type_maps.contain(node.getScope.toString))
+              ctx.type_maps.getNewContent(node.getScope.toString, code_scope, ctx.getCurrentMode)
+            else
+              ctx.ident_maps.getNewContent(node.getScope.toString, code_scope, ctx.getCurrentMode)
+
             ctx.appendPosition(scope_value, position = node.getScope.genPosition(ctx), rootPath = rootPath)
           } else
             node.getScope.genCode(ctx, numsIntent, tgt, code_scope)
@@ -1679,7 +1683,6 @@ trait EnrichedTrees extends utils.Common {
           if (i < typelist.size() - 1)
             ctx.appendPosition(",", index = -1, parent = node, rootPath = rootPath)
         }
-
 
         ctx.appendPosition(">", index = 2, parent = node, rootPath = rootPath)
       }

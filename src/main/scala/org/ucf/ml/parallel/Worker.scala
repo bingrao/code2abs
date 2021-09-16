@@ -10,13 +10,13 @@ class AbstractWorker(wtx: WorkerContext) extends Callable[WorkerContext] with ut
 
   val javaPaser = wtx.javaPaser
 
-  def task(buggyPath:String, fixedPath:String, last:Boolean=false) = {
-    def _task(ctx:Context, inputPath:String, mode:Value, granularity:Value) = {
+  def task(buggyPath:String, fixedPath:String, last:Boolean=false, isFile:Boolean=true) = {
+    def _task(ctx:Context, inputPath:String, mode:Value, granularity:Value, isFile:Boolean=true) = {
       try {
         ctx.setCurrentMode(mode)
         if (logger.isDebugEnabled) ctx.append(s"[${wtx.get_work_id}]-${new File(inputPath).getName}")
 
-        val cu = javaPaser.getBPEComplationUnit(inputPath, ctx, granularity)
+        val cu = javaPaser.getBPEComplationUnit(inputPath, ctx, granularity, isFile = isFile)
 
         javaPaser.genAbstractCode(ctx, cu)
       } catch {
@@ -33,8 +33,8 @@ class AbstractWorker(wtx: WorkerContext) extends Callable[WorkerContext] with ut
       logger.error(s"[Input]-${buggyPath} != ${fixedPath}")
     }
 
-    _task(ctx, buggyPath, SOURCE, wtx.get_granularity)
-    _task(ctx, fixedPath, TARGET, wtx.get_granularity)
+    _task(ctx, buggyPath, SOURCE, wtx.get_granularity, isFile)
+    _task(ctx, fixedPath, TARGET, wtx.get_granularity, isFile)
 
     // append results
     val buggy_abstract = ctx.get_buggy_abstract(wtx.isWithPosition)
@@ -64,7 +64,7 @@ class AbstractWorker(wtx: WorkerContext) extends Callable[WorkerContext] with ut
 
     /*Iteration Executing task to handle with all involved in data*/
     for (idx <- 0 until wtx.size) {
-      task(wtx.get_buggy_batch(idx), wtx.get_fixed_batch(idx), idx == wtx.size - 1)
+      task(wtx.get_buggy_batch(idx), wtx.get_fixed_batch(idx), idx == wtx.size - 1, isFile=wtx.isFile)
     }
     val stop = System.currentTimeMillis()
     logger.info(f"Worker ${wtx.get_work_id} deal with ${wtx.size} task in ${(stop - start)/1000} seconds")

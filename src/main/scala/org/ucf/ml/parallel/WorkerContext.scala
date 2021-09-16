@@ -18,7 +18,8 @@ class WorkerContext(buggy_batch:List[String],
                     n_best:Int = 1,
                     granularity: Value = METHOD,
                     batch_size:Int,
-                    isPosition:Boolean=false) extends Serializable {
+                    isPosition:Boolean=false,
+                    _isFile:Boolean=true) extends Serializable {
 
   private val buggy_abstract = new StringBuilder
   private val buggy_abstract_path = new StringBuilder
@@ -69,4 +70,6 @@ class WorkerContext(buggy_batch:List[String],
 
 //  def isWithPosition: lang.Boolean = config.getBoolean("with_position")
   def isWithPosition: lang.Boolean = isPosition
+
+  def isFile: lang.Boolean = _isFile
 }

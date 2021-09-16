@@ -91,7 +91,7 @@ trait Common {
     logger.info(f"Loading ${srcFiles.size} java files from ${srcPath}")
     logger.info(f"Loading ${tgtFiles.size} java files from ${tgtPath}")
 
-    if (srcFiles.size != tgtFiles.size){
+    if (srcFiles.size != tgtFiles.size) {
       logger.error(f"The sizes of source (${srcFiles.size}) and target (${tgtFiles}) do not match ...")
       System.exit(-1)
     }
